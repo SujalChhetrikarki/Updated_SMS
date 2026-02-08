@@ -9,7 +9,7 @@ if (!isset($_SESSION['admin_id'])) {
 
 // Handle Add Exam Form
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_exam'])) {
-    $class_ids = isset($_POST['class_id']) ? (array)$_POST['class_id'] : [];
+    $class_ids = [ $_POST['class_id'] ];
     $subject_ids = isset($_POST['subject_id']) ? (array)$_POST['subject_id'] : [];
     $exam_date = $_POST['exam_date'];
     $max_marks = $_POST['max_marks'];
@@ -100,6 +100,26 @@ select, input { width:100%; margin-bottom:10px; padding:8px; }
 table { width:90%; margin:30px auto; border-collapse:collapse; background:#fff; }
 th, td { border:1px solid #ccc; padding:8px; text-align:center; }
 th { background:#00bfff; }
+.clean-select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background-color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='gray' viewBox='0 0 16 16'%3E%3Cpath d='M1.5 5.5l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+}
+
+.clean-select:focus {
+    outline: none;
+    border-color: #00bfff;
+    box-shadow: 0 0 0 2px rgba(0,191,255,0.2);
+}
 
 </style>
 </head>
@@ -129,17 +149,20 @@ th { background:#00bfff; }
     <h2>➕ Add Term-wise Exam</h2>
     <?php if($msg) echo "<p style='color:green; text-align:center;'>{$msg}</p>"; ?>
 
-    <form method="POST">
-        <label>Select Class(es)</label>
-        <select name="class_id[]" multiple required>
-        <?php if ($classes && $classes->num_rows > 0): ?>
-            <?php while($c=$classes->fetch_assoc()): ?>
-                <option value="<?= $c['class_id'] ?>"><?= htmlspecialchars($c['class_name']) ?></option>
-            <?php endwhile; ?>
-        <?php else: ?>
-            <option disabled>No Classes Available</option>
-        <?php endif; ?>
-        </select>
+   <label>Select Class</label>
+<select name="class_id" required class="clean-select">
+    <option value="">-- Select Class --</option>
+    <?php if ($classes && $classes->num_rows > 0): ?>
+        <?php while($c = $classes->fetch_assoc()): ?>
+            <option value="<?= $c['class_id'] ?>">
+                <?= htmlspecialchars($c['class_name']) ?>
+            </option>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <option disabled>No Classes Available</option>
+    <?php endif; ?>
+</select>
+
 
         <label>Select Subject(s)</label>
         <select name="subject_id[]" multiple required>
@@ -158,12 +181,9 @@ th { background:#00bfff; }
         <label>Maximum Marks</label>
         <input type="number" name="max_marks" min="1" required>
 
-        <label>Term</label>
-        <select name="term" required>
-            <option value="Term 1">Term 1</option>
-            <option value="Term 2">Term 2</option>
-            <option value="Term 3">Term 3</option>
-        </select>
+<label>Term</label>
+<input type="text" name="term" placeholder="e.g. Term 1 / Mid Term / Final Exam" required>
+
 
         <button type="submit" name="add_exam" class="btn">Add Exam</button>
     </form>
