@@ -10,7 +10,7 @@ if (!isset($_SESSION['admin_id'])) {
 // Handle Add Exam Form
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_exam'])) {
     $class_ids = [ $_POST['class_id'] ];
-    $subject_ids = isset($_POST['subject_id']) ? (array)$_POST['subject_id'] : [];
+$subject_ids = [ $_POST['subject_id'] ];
     $exam_date = $_POST['exam_date'];
     $max_marks = $_POST['max_marks'];
     $term = $_POST['term'];
@@ -164,16 +164,20 @@ th { background:#00bfff; }
 </select>
 
 
-        <label>Select Subject(s)</label>
-        <select name="subject_id[]" multiple required>
-        <?php if ($subjects && $subjects->num_rows > 0): ?>
-            <?php while($s=$subjects->fetch_assoc()): ?>
-                <option value="<?= $s['subject_id'] ?>"><?= htmlspecialchars($s['subject_name']) ?></option>
-            <?php endwhile; ?>
-        <?php else: ?>
-            <option disabled>No Subjects Available</option>
-        <?php endif; ?>
-        </select>
+       <label>Select Subject</label>
+<select name="subject_id" required class="clean-select">
+    <option value="">-- Select Subject --</option>
+    <?php if ($subjects && $subjects->num_rows > 0): ?>
+        <?php while($s = $subjects->fetch_assoc()): ?>
+            <option value="<?= $s['subject_id'] ?>">
+                <?= htmlspecialchars($s['subject_name']) ?>
+            </option>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <option disabled>No Subjects Available</option>
+    <?php endif; ?>
+</select>
+
 
         <label>Exam Date</label>
         <input type="date" name="exam_date" required>
