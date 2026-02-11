@@ -6,7 +6,6 @@ if (!isset($_SESSION['admin_id'])) {
     header("Location: ../admin_login.php");
     exit;
 }
-
 // Handle Add Exam Form
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_exam'])) {
     $class_ids = [ $_POST['class_id'] ];
