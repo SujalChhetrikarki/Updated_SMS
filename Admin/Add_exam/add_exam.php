@@ -120,7 +120,6 @@ th { background:#00bfff; }
     border-color: #00bfff;
     box-shadow: 0 0 0 2px rgba(0,191,255,0.2);
 }
-
 </style>
 </head>
 <body>
