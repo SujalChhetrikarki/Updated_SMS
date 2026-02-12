@@ -131,7 +131,7 @@ select{
   border:none;
   outline:none;
   font-size:15px;
-  margin-bottom:26px;
+  margin-bottom:20px;
 }
 
 button{
@@ -145,11 +145,22 @@ button{
   font-weight:600;
   cursor:pointer;
   transition:.3s;
+  margin-bottom:12px;
 }
 
 button:hover{
   transform:translateY(-2px);
   box-shadow:0 12px 30px rgba(0,0,0,.3);
+}
+
+/* Secondary Button */
+.secondary-btn{
+  background:rgba(255,255,255,0.2);
+  border:1px solid rgba(255,255,255,0.4);
+}
+
+.secondary-btn:hover{
+  background:rgba(255,255,255,0.3);
 }
 
 /* ===== ABOUT ===== */
@@ -213,6 +224,8 @@ footer{
     </select>
 
     <button onclick="login()">Enter System</button>
+
+
   </div>
 </main>
 
@@ -222,6 +235,11 @@ footer{
     Diversity Academy empowers learners through technology-driven education,
     fostering innovation, responsibility, and academic excellence.
   </p>
+      <!-- Pre Admission Button -->
+    <button class="secondary-btn"
+      onclick="location.href='PreRegistration/preregistration.php'">
+      Pre-Admission
+    </button>
 </section>
 
 <footer>
@@ -231,9 +249,11 @@ footer{
 <script>
 function login(){
   const role=document.getElementById("role").value;
-  if(role==="student") location.href="Students/student.php";
-  else if(role==="teacher") location.href="Teachers/teacher.php";
-  else location.href="Admin/admin.php";
+
+  if(role==="student")
+    location.href="Students/student.php";
+  else if(role==="teacher")
+    location.href="Teachers/teacher.php";
 }
 </script>
 
