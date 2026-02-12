@@ -110,22 +110,26 @@ body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: #eef2f7;
     padding: 20px;
+    margin: 0;
 }
+
 .report-card {
     max-width: 900px;
-    margin: auto;
+    margin: 40px auto;
     background: #fff;
     border: 3px solid #00bfff;
     padding: 40px;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.25);
 }
+
 .school-header {
     text-align: center;
     border-bottom: 3px solid #00bfff;
     padding-bottom: 15px;
     margin-bottom: 25px;
 }
+
 .school-header h1 {
     margin: 0;
     font-size: 36px;
@@ -134,62 +138,75 @@ body {
     text-transform: uppercase;
     letter-spacing: 2px;
 }
+
 .school-header p {
     margin: 5px 0;
     font-size: 15px;
     color: #555;
 }
+
 .student-info {
     margin-bottom: 25px;
     font-size: 17px;
     line-height: 1.6;
 }
+
 .student-info strong {
     color: #00bfff;
 }
+
 h2 {
-    text-align: center; 
-    color:#2c3e50;
+    text-align: center;
+    color: #2c3e50;
     margin: 20px 0;
 }
+
 table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
 }
+
 th, td {
     border: 1px solid #333;
     padding: 12px;
     text-align: center;
     font-size: 14px;
 }
+
 th {
     background: #00bfff;
     color: #fff;
     font-size: 15px;
 }
+
 tfoot td {
     font-weight: bold;
     background: #ecf0f1;
 }
+
 .footer {
     display: flex;
     justify-content: space-between;
     margin-top: 50px;
     font-size: 15px;
 }
+
 .signature {
     text-align: center;
     width: 200px;
 }
+
 .signature p {
     margin: 60px 0 5px;
 }
+
 .print-btn {
     display: block;
     text-align: center;
     margin: 20px auto;
 }
+
 .print-btn button {
     background: #00bfff;
     color: #fff;
@@ -200,38 +217,28 @@ tfoot td {
     cursor: pointer;
     transition: 0.3s;
 }
+
 .print-btn button:hover {
     background: #1a252f;
 }
-@media print {
-    body {
-        background: none;
-        padding: 0;
-    }
-    .print-btn {
-        display: none;
-    }
-    .report-card {
-        box-shadow: none;
-        border: 2px solid #00bfff;
-        margin: 0;
-        width: 100%;
-    }
-}
+
 .sidebar {
     width: 220px;
     background: #00bfff;
     height: 100vh;
     position: fixed;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     padding: 20px 15px;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
 }
+
 .sidebar h2 {
     color: #fff;
     text-align: center;
     margin-bottom: 30px;
 }
+
 .sidebar a {
     display: block;
     color: #fff;
@@ -241,12 +248,52 @@ tfoot td {
     border-radius: 6px;
     transition: background 0.3s;
 }
+
 .sidebar a:hover {
     background: rgba(255,255,255,0.2);
 }
+
 .date-form select {
     padding: 5px 10px;
     border-radius: 5px;
+}
+
+/* Print Styles */
+@media print {
+    .sidebar,
+    .print-btn,
+    form {
+        display: none !important;
+    }
+
+    body {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .report-card {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        border: 2px solid #000 !important;
+        box-shadow: none !important;
+        border-radius: 0;
+        page-break-inside: avoid;
+    }
+
+    .school-header {
+        page-break-after: avoid;
+    }
+
+    table {
+        page-break-inside: avoid;
+    }
+
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
 }
 </style>
 </head>
