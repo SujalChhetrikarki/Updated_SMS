@@ -237,7 +237,7 @@ footer{
   </p>
       <!-- Pre Admission Button -->
     <button class="secondary-btn"
-      onclick="location.href='PreRegistration/preregistration.php'">
+      onclick="location.href='Admin/PreRegistration/preregistration.php'">
       Pre-Admission
     </button>
 </section>

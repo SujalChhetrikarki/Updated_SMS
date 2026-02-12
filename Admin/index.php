@@ -204,6 +204,7 @@ body {
 <div class="sidebar">
   <h2>Admin Panel</h2>
   <a href="index.php">🏠 Home</a>
+  <a href="PreAdmissions.php">📝 Pre-Admissions</a>
   <a href="../Admin/Manage_student/Managestudent.php">📚 Manage Students</a>
   <a href="./Manage_Teachers/Teachersshow.php">👨‍🏫 Manage Teachers</a>
   <a href="./classes/classes.php">🏫 Manage Classes</a>
