@@ -90,7 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         body {
             font-family: 'Inter', 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #3b82f6 0%, #764ba2 100%);
+            background: radial-gradient(circle at top right,#60a5fa,transparent 40%),
+    radial-gradient(circle at bottom left,#22d3ee,transparent 40%),
+    linear-gradient(135deg,#0ea5e9,#6366f1);
             min-height: 100vh;
             padding: 40px 20px;
         }
