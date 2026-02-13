@@ -231,8 +231,12 @@ body {
       <p><?= $total_teachers ?></p>
     </div>
     <div class="card">
-      <h3>📢 Manage Notices</h3>
+      <h3>Manage Notices</h3>
       <a href="manage_notices.php" class="button-link">➕ Add / Manage Notices</a>
+    </div>
+        <div class="card">
+      <h3>Pre-Admissions</h3>
+      <a href="PreAdmissions.php" class="button-link">Manage Pre-Admissions</a>
     </div>
     <div class="card birthday-card">
       <h3>🎂 Birthdays This Week</h3>
