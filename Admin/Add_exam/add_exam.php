@@ -187,7 +187,7 @@ th { background:#00bfff; }
 <input type="text" name="term" placeholder="e.g. Term 1 / Mid Term / Final Exam" required>
 
 
-        <button type="submit" name="add_exam" class="btn">Add Exam</button>
+    <button type="submit" name="add_exam" class="btn">Add Exam</button>
     </form>
 
     <h2>📅 Upcoming Exams</h2>

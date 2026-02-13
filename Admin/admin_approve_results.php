@@ -212,8 +212,27 @@ tr:hover { background: #f1f5f9; }
         </table>
         </div>
         <br>
-        <button type="submit" name="approve" class="btn">Approve Selected Results</button>
-    </form>
+        <button 
+    type="submit" 
+    name="approve" 
+    class="btn"
+    style="
+        background-color: #007BFF;
+        color: #ffffff;
+        border: none;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    "
+    onmouseover="this.style.backgroundColor='#0056b3'"
+    onmouseout="this.style.backgroundColor='#007BFF'"
+>
+    Approve Selected Results
+</button>
+
 </div>
 
 </body>
