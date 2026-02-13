@@ -104,6 +104,11 @@ $teachers = $conn->query("SELECT teacher_id, name FROM teachers ORDER BY name AS
             margin-left: 240px;
             padding: 30px;
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 60px);
         }
 
         /* ===== Header ===== */
@@ -113,6 +118,8 @@ $teachers = $conn->query("SELECT teacher_id, name FROM teachers ORDER BY name AS
             font-size: 28px;
             color: #1f2937;
             font-weight: 600;
+            text-align: center;
+            width: 100%;
         }
 
         /* ===== Form Card ===== */
@@ -121,6 +128,7 @@ $teachers = $conn->query("SELECT teacher_id, name FROM teachers ORDER BY name AS
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 100%;
             max-width: 500px;
         }
 
