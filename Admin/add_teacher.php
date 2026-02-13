@@ -119,6 +119,14 @@ if ($result && $result->num_rows > 0) {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
+        .card h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #1f2937;
+            font-size: 24px;
+        }
+
         /* ===== Form ===== */
         form label {
             display: block;
