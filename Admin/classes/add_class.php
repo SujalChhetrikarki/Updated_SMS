@@ -218,7 +218,6 @@ $teachers = $conn->query("SELECT teacher_id, name FROM teachers ORDER BY name AS
     <a href="../add_teacher.php">➕ Add Teacher</a>
     <a href="../Add_exam/add_exam.php">➕ Add Exam</a>
     <a href="../admin_approve_results.php">✅ Approve Results</a>
-    <a href="../PreAdmissions.php">📝 Pre-Admissions</a>
     <a href="../logout.php" class="logout">🚪 Logout</a>
 </div>
 
