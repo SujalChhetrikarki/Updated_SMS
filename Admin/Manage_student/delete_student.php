@@ -29,23 +29,29 @@ if ($result->num_rows === 0) {
 $conn->begin_transaction();
 
 try {
-    // 1️⃣ (Optional) Delete related results if they exist
-    if ($conn->query("SHOW TABLES LIKE 'results'")->num_rows > 0) {
-        $stmt_results = $conn->prepare("DELETE FROM results WHERE student_id = ?");
-        $stmt_results->bind_param("s", $student_id);
-        $stmt_results->execute();
-    }
+    // 1️⃣ Delete attendance records for this student
+    $stmt_att = $conn->prepare("DELETE FROM attendance WHERE student_id = ?");
+    $stmt_att->bind_param("s", $student_id);
+    $stmt_att->execute();
+    $stmt_att->close();
+    
+    // 2️⃣ Delete results/marks for this student
+    $stmt_results = $conn->prepare("DELETE FROM results WHERE student_id = ?");
+    $stmt_results->bind_param("s", $student_id);
+    $stmt_results->execute();
+    $stmt_results->close();
 
-    // 2️⃣ Delete student from students table
+    // 3️⃣ Delete student from students table
     $stmt_delete = $conn->prepare("DELETE FROM students WHERE student_id = ?");
     $stmt_delete->bind_param("s", $student_id);
     $stmt_delete->execute();
+    $stmt_delete->close();
 
     // ✅ Commit transaction
     $conn->commit();
 
     // ✅ Redirect with success message
-    header("Location: Managestudent.php?msg=" . urlencode("✅ Student deleted successfully."));
+    header("Location: Managestudent.php?msg=" . urlencode("✅ Student and all related data deleted successfully."));
     exit;
 
 } catch (Exception $e) {

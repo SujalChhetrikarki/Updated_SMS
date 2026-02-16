@@ -98,6 +98,24 @@ $terms = [];
 while($t = $terms_result->fetch_assoc()){
     $terms[] = $t['term'];
 }
+
+// ✅ Grading Function - Converts marks to letter grades
+function getGrade($marks) {
+    if ($marks >= 90) return ['grade' => 'A+', 'color' => '#10b981'];      // A+ (90-100)
+    if ($marks >= 85) return ['grade' => 'A', 'color' => '#059669'];       // A  (85-89)
+    if ($marks >= 80) return ['grade' => 'A-', 'color' => '#0d9488'];      // A- (80-84)
+    if ($marks >= 75) return ['grade' => 'B+', 'color' => '#2563eb'];      // B+ (75-79)
+    if ($marks >= 70) return ['grade' => 'B', 'color' => '#1e40af'];       // B  (70-74)
+    if ($marks >= 65) return ['grade' => 'B-', 'color' => '#1e3a8a'];      // B- (65-69)
+    if ($marks >= 60) return ['grade' => 'C+', 'color' => '#ea580c'];      // C+ (60-64)
+    if ($marks >= 55) return ['grade' => 'C', 'color' => '#c2410c'];       // C  (55-59)
+    if ($marks >= 50) return ['grade' => 'C-', 'color' => '#b45309'];      // C- (50-54)
+    if ($marks >= 40) return ['grade' => 'D', 'color' => '#ea8500'];       // D  (40-49)
+    return ['grade' => 'F', 'color' => '#dc2626'];                         // F  (0-39)
+}
+
+// ✅ Get overall grade
+$overall_grade = getGrade($overall_avg);
 $stmt_terms->close();
 ?>
 <!DOCTYPE html>
@@ -343,23 +361,27 @@ tfoot td {
             <th>Subject</th>
             <th>Exam Date</th>
             <th>Marks Obtained</th>
+            <th>Grade</th>
             <th>Average Marks</th>
         </tr>
         <?php if(empty($rows)): ?>
-            <tr><td colspan="5">No results approved yet.</td></tr>
+            <tr><td colspan="6">No results approved yet.</td></tr>
         <?php else: ?>
-            <?php foreach ($rows as $r): ?>
+            <?php foreach ($rows as $r): 
+                $grade_info = getGrade($r['marks_obtained']);
+            ?>
                 <tr>
                     <td><?= htmlspecialchars($r['term']) ?></td>
                     <td><?= htmlspecialchars($r['subject_name']) ?></td>
                     <td><?= htmlspecialchars($r['exam_date']) ?></td>
                     <td><?= htmlspecialchars($r['marks_obtained']) ?></td>
+                    <td><span style="display: inline-block; padding: 4px 10px; border-radius: 4px; background-color: <?= $grade_info['color'] ?>; color: white; font-weight: bold;"><?= $grade_info['grade'] ?></span></td>
                     <td><?= number_format($r['average_marks'],2) ?></td>
                 </tr>
             <?php endforeach; ?>
             <tfoot>
                 <tr>
-                    <td colspan="4">Overall Average</td>
+                    <td colspan="5">Overall Average: <span style="display: inline-block; padding: 4px 10px; border-radius: 4px; background-color: <?= $overall_grade['color'] ?>; color: white; font-weight: bold; margin-left: 5px;"><?= $overall_grade['grade'] ?></span></td>
                     <td><?= number_format($overall_avg,2) ?></td>
                 </tr>
             </tfoot>

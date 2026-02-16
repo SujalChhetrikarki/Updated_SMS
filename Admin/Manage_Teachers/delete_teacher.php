@@ -33,21 +33,36 @@ try {
     $stmt_ct = $conn->prepare("DELETE FROM class_teachers WHERE teacher_id = ?");
     $stmt_ct->bind_param("s", $teacher_id);
     $stmt_ct->execute();
+    $stmt_ct->close();
 
-    // 2️⃣ Delete teacher assignments from teacher_subjects (or class_subject_teachers)
+    // 2️⃣ Delete teacher assignments from class_subject_teachers
+    $stmt_cst = $conn->prepare("DELETE FROM class_subject_teachers WHERE teacher_id = ?");
+    $stmt_cst->bind_param("s", $teacher_id);
+    $stmt_cst->execute();
+    $stmt_cst->close();
+
+    // 3️⃣ Delete teacher assignments from teacher_subjects
     $stmt_ts = $conn->prepare("DELETE FROM teacher_subjects WHERE teacher_id = ?");
     $stmt_ts->bind_param("s", $teacher_id);
     $stmt_ts->execute();
+    $stmt_ts->close();
 
-    // 3️⃣ Delete the teacher
+    // 4️⃣ Clear class_teacher_id in classes table if this teacher was a class teacher
+    $stmt_classes = $conn->prepare("UPDATE classes SET class_teacher_id = NULL WHERE class_teacher_id = ?");
+    $stmt_classes->bind_param("s", $teacher_id);
+    $stmt_classes->execute();
+    $stmt_classes->close();
+
+    // 5️⃣ Delete the teacher
     $stmt_delete = $conn->prepare("DELETE FROM teachers WHERE teacher_id = ?");
     $stmt_delete->bind_param("s", $teacher_id);
     $stmt_delete->execute();
+    $stmt_delete->close();
 
     // ✅ Commit transaction
     $conn->commit();
 
-    header("Location: Teachersshow.php?msg=" . urlencode("✅ Teacher deleted successfully."));
+    header("Location: Teachersshow.php?msg=" . urlencode("✅ Teacher and all assignments deleted successfully."));
     exit;
 
 } catch (Exception $e) {
