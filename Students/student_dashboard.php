@@ -75,7 +75,7 @@ function getGrade($marks) {
 }
 
 // ✅ Fetch student's overall marks and grade
-$marks_sql = "SELECT IFNULL(ROUND(AVG(r.marks_obtained), 2), 0) AS avg_marks
+$marks_sql = "SELECT IFNULL(ROUND(AVG(r.marks_obtained), 2), 0) AS avg_marks, COUNT(*) as result_count
               FROM results r
               WHERE r.student_id = ? AND r.status = 'Approved'";
 $stmt_marks = $conn->prepare($marks_sql);
@@ -84,6 +84,7 @@ $stmt_marks->execute();
 $marks_result = $stmt_marks->get_result();
 $marks_data = $marks_result->fetch_assoc();
 $avg_marks = $marks_data['avg_marks'];
+$result_count = $marks_data['result_count'];
 $grade_info = getGrade($avg_marks);
 $stmt_marks->close();
 
@@ -269,7 +270,9 @@ $conn->close();
                 <tr><th>Gender</th><td><?php echo htmlspecialchars($student['gender']); ?></td></tr>
                 <tr><th>Class</th><td><?php echo htmlspecialchars($student['class_name']); ?></td></tr>
                 <tr><th>Class Teacher</th><td><?php echo !empty($student['teacher_name']) ? htmlspecialchars($student['teacher_name']) : 'Not Assigned'; ?></td></tr>
+                <?php if ($result_count > 0): ?>
                 <tr><th>Overall Marks</th><td><?php echo number_format($avg_marks, 2); ?>/100 - <span class="grade-badge" style="background-color: <?php echo $grade_info['color']; ?>;"><?php echo $grade_info['grade']; ?></span></td></tr>
+                <?php endif; ?>
                 <tr><th>Class Ranking</th><td><span class="rank-badge"><?php echo $student_rank > 0 ? "Rank #" . $student_rank . " out of " . $total_class_students : "No ranking data"; ?></span></td></tr>
             </table>
         </div>
