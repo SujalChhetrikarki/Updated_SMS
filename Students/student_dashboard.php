@@ -388,30 +388,65 @@ $conn->close();
         <div class="header">🎓 Welcome, <?php echo htmlspecialchars($student['name']); ?></div>
 
         <!-- Notices - Corner Alert (Top Right) - Vibrant -->
-        <?php 
-        $latest_notice = null;
-        if ($notices && $notices->num_rows > 0) {
-            $latest_notice = $notices->fetch_assoc();
-        }
-        ?>
-        <?php if ($latest_notice): ?>
-        <div class="notice-vibrant" style="position: fixed; top: 20px; right: 20px; width: 320px; background: linear-gradient(135deg, #00bfff 0%, #0095cc 100%); border-radius: 12px; padding: 16px 18px; box-shadow: 0 6px 20px rgba(0, 191, 255, 0.25), inset 0 0 20px rgba(0, 255, 255, 0.1); border-right: 4px solid #00ffff; border-top: 2px solid #00ffff; z-index: 999; display: flex; align-items: flex-start; gap: 12px; backdrop-filter: blur(10px);">
-            <span style="font-size: 26px; flex-shrink: 0; margin-top: 2px; animation: bounce 2s infinite;">📢</span>
-            <div style="flex: 1; min-width: 0;">
-                <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"><?= htmlspecialchars($latest_notice['title']); ?></h4>
-                <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 13px; line-height: 1.5; font-weight: 500;"><?= substr(htmlspecialchars($latest_notice['message']), 0, 90) . (strlen($latest_notice['message']) > 90 ? '...' : ''); ?></p>
-                <small style="color: rgba(255,255,255,0.8); font-size: 12px; margin-top: 6px; display: block; font-weight: 600;">🕒 <?= date('d M Y, h:i', strtotime($latest_notice['created_at'])); ?></small>
-            </div>
-            <div style="width: 3px; height: 100%; background: linear-gradient(to bottom, #00ffff, #0095cc, transparent); border-radius: 2px; opacity: 0.7;"></div>
-        </div>
-        <style>
-            @keyframes bounce {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-8px); }
-            }
-        </style>
-        <?php endif; ?>
+<?php if ($notices && $notices->num_rows > 0): ?>
 
+    <?php 
+    $topOffset = 20; // Starting top position
+    $gap = 140;      // Space between notices (adjust if needed)
+    ?>
+
+    <?php while ($notice = $notices->fetch_assoc()): ?>
+        
+        <div class="notice-vibrant" 
+             style="position: fixed; 
+                    top: <?= $topOffset ?>px; 
+                    right: 20px; 
+                    width: 320px; 
+                    background: linear-gradient(135deg, #00bfff 0%, #0095cc 100%);
+                    border-radius: 12px; 
+                    padding: 16px 18px; 
+                    box-shadow: 0 6px 20px rgba(0, 191, 255, 0.25), 
+                                inset 0 0 20px rgba(0, 255, 255, 0.1); 
+                    border-right: 4px solid #00ffff; 
+                    border-top: 2px solid #00ffff; 
+                    z-index: 999; 
+                    display: flex; 
+                    align-items: flex-start; 
+                    gap: 12px; 
+                    backdrop-filter: blur(10px);">
+
+            <span style="font-size: 26px; flex-shrink: 0; margin-top: 2px; animation: bounce 2s infinite;">📢</span>
+
+            <div style="flex: 1; min-width: 0;">
+                <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                    <?= htmlspecialchars($notice['title']); ?>
+                </h4>
+
+                <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 13px; line-height: 1.5; font-weight: 500;">
+                    <?= substr(htmlspecialchars($notice['message']), 0, 90) . (strlen($notice['message']) > 90 ? '...' : ''); ?>
+                </p>
+
+                <small style="color: rgba(255,255,255,0.8); font-size: 12px; margin-top: 6px; display: block; font-weight: 600;">
+                    🕒 <?= date('d M Y, h:i', strtotime($notice['created_at'])); ?>
+                </small>
+            </div>
+
+            <div style="width: 3px; height: 100%; background: linear-gradient(to bottom, #00ffff, #0095cc, transparent); border-radius: 2px; opacity: 0.7;"></div>
+
+        </div>
+
+        <?php $topOffset += $gap; ?>
+
+    <?php endwhile; ?>
+
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+    </style>
+
+<?php endif; ?>
         <!-- Term Filter -->
         <?php if (!empty($available_terms)): ?>
         <div class="card" style="margin-bottom: 15px;">
