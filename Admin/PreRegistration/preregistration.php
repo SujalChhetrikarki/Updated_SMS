@@ -365,6 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="date_of_birth">Date of Birth <span class="required">*</span></label>
                         <input type="date" id="date_of_birth" name="date_of_birth" 
                                value="<?php echo isset($date_of_birth) ? htmlspecialchars($date_of_birth) : ''; ?>"
+                               max="<?= date('Y-m-d') ?>"
                                required>
                     </div>
                     

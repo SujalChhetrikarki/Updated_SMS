@@ -13,19 +13,36 @@ if (isset($_GET['search'])) {
     $search = mysqli_real_escape_string($conn, $_GET['search']);
 }
 
-// Fetch students with performance
+// Fetch students with performance (with percentage-based calculation)
 $sql = "
     SELECT s.student_id, s.name, s.email, s.class_id, c.class_name,
-           IFNULL(ROUND(AVG(r.average_marks),2), 0) as avg_marks
+           IFNULL(ROUND(AVG((r.marks_obtained / e.max_marks) * 100), 2), 0) as percentage_avg,
+           IFNULL(ROUND(AVG(r.average_marks), 2), 0) as avg_marks
     FROM students s
     JOIN classes c ON s.class_id = c.class_id
     LEFT JOIN results r ON s.student_id = r.student_id
+    LEFT JOIN exams e ON r.exam_id = e.exam_id
     WHERE s.name LIKE '%$search%'
     GROUP BY s.student_id, s.name, s.email, s.class_id, c.class_name
-    ORDER BY avg_marks DESC
+    ORDER BY percentage_avg DESC
 ";
 $students = $conn->query($sql);
 if (!$students) die("SQL Error: " . $conn->error);
+
+// ✅ Grading Function - Converts percentage to letter grades
+function getGrade($marks) {
+    if ($marks >= 90) return ['grade' => 'A+', 'color' => '#10b981'];
+    if ($marks >= 85) return ['grade' => 'A', 'color' => '#059669'];
+    if ($marks >= 80) return ['grade' => 'A-', 'color' => '#0d9488'];
+    if ($marks >= 75) return ['grade' => 'B+', 'color' => '#2563eb'];
+    if ($marks >= 70) return ['grade' => 'B', 'color' => '#1e40af'];
+    if ($marks >= 65) return ['grade' => 'B-', 'color' => '#1e3a8a'];
+    if ($marks >= 60) return ['grade' => 'C+', 'color' => '#ea580c'];
+    if ($marks >= 55) return ['grade' => 'C', 'color' => '#c2410c'];
+    if ($marks >= 50) return ['grade' => 'C-', 'color' => '#b45309'];
+    if ($marks >= 40) return ['grade' => 'D', 'color' => '#ea8500'];
+    return ['grade' => 'F', 'color' => '#dc2626'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -162,7 +179,38 @@ tr:hover { background: #f1f5f9; border-radius: 12px; }
 .btn.edit:hover { background: #eab308; }
 .btn.delete:hover { background: #dc2626; }
 
-/* ===== Responsive ===== */
+.grade-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 12px;
+    color: white;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.grading-scale {
+    background: #f0f8ff;
+    border: 2px solid #3b82f6;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.grading-scale h3 {
+    margin-top: 0;
+    color: #1f2937;
+}
+
+.grading-scale table {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.grading-scale table th, .grading-scale table td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
 @media(max-width:768px){
     .main { margin-left: 0; padding: 15px; }
     .sidebar { width: 100%; height: auto; position: relative; }
@@ -207,7 +255,7 @@ tr:hover { background: #f1f5f9; border-radius: 12px; }
                 <th>Name</th>
                 <th>Email</th>
                 <th>Class</th>
-                <th>Performance (Avg Marks)</th>
+                <th>Performance</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -221,11 +269,14 @@ tr:hover { background: #f1f5f9; border-radius: 12px; }
                         <td><?= htmlspecialchars($row['class_name']); ?></td>
                         <td>
                             <?php
-                            $performance = $row['avg_marks'];
-                            if ($performance >= 75) echo "🌟 Excellent ($performance%)";
-                            elseif ($performance >= 50) echo "👍 Good ($performance%)";
-                            elseif ($performance > 0) echo "⚠ Needs Improvement ($performance%)";
-                            else echo "❌ No Results";
+                            $percentage = $row['percentage_avg'];
+                            $grade_info = getGrade($percentage);
+                            if ($percentage > 0) {
+                                echo "<span class='grade-badge' style='background-color: " . $grade_info['color'] . "'>";
+                                echo $grade_info['grade'] . " (" . number_format($percentage, 2) . "%)</span>";
+                            } else {
+                                echo "<span class='grade-badge' style='background-color: #9ca3af;'>No Data</span>";
+                            }
                             ?>
                         </td>
                         <td>
@@ -240,6 +291,57 @@ tr:hover { background: #f1f5f9; border-radius: 12px; }
             <?php endif; ?>
         </tbody>
     </table>
+
+    <!-- Grading Scale Reference -->
+    <div class="grading-scale">
+        <h3>📊 Grading Scale (Based on Percentage)</h3>
+        <table>
+            <tr>
+                <th>Percentage Range (%)</th>
+                <th>Grade</th>
+                <th>Percentage Range (%)</th>
+                <th>Grade</th>
+            </tr>
+            <tr>
+                <td>90-100%</td>
+                <td><span class="grade-badge" style="background-color: #10b981;">A+</span></td>
+                <td>65-69%</td>
+                <td><span class="grade-badge" style="background-color: #1e3a8a;">B-</span></td>
+            </tr>
+            <tr>
+                <td>85-89%</td>
+                <td><span class="grade-badge" style="background-color: #059669;">A</span></td>
+                <td>60-64%</td>
+                <td><span class="grade-badge" style="background-color: #ea580c;">C+</span></td>
+            </tr>
+            <tr>
+                <td>80-84%</td>
+                <td><span class="grade-badge" style="background-color: #0d9488;">A-</span></td>
+                <td>55-59%</td>
+                <td><span class="grade-badge" style="background-color: #c2410c;">C</span></td>
+            </tr>
+            <tr>
+                <td>75-79%</td>
+                <td><span class="grade-badge" style="background-color: #2563eb;">B+</span></td>
+                <td>50-54%</td>
+                <td><span class="grade-badge" style="background-color: #b45309;">C-</span></td>
+            </tr>
+            <tr>
+                <td>70-74%</td>
+                <td><span class="grade-badge" style="background-color: #1e40af;">B</span></td>
+                <td>40-49%</td>
+                <td><span class="grade-badge" style="background-color: #ea8500;">D</span></td>
+            </tr>
+            <tr>
+                <td colspan="2"></td>
+                <td>0-39%</td>
+                <td><span class="grade-badge" style="background-color: #dc2626;">F</span></td>
+            </tr>
+        </table>
+        <p style="font-size: 12px; color: #666; margin-top: 15px; text-align: center;">
+            💡 <em>Note: Performance is calculated based on percentage from all exams, works with any exam maximum marks (50, 100, 200, etc.)</em>
+        </p>
+    </div>
 </div>
 
 </body>

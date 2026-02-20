@@ -188,7 +188,7 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 </select>
 
 <label>Date of Birth</label>
-<input type="date" name="date_of_birth" required>
+<input type="date" name="date_of_birth" max="<?= date('Y-m-d') ?>" required>
 
 <label>Gender</label>
 <select name="gender" required>

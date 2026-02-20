@@ -147,7 +147,8 @@ th { background:#00bfff; }
     <h2>➕ Add Term-wise Exam</h2>
     <?php if($msg) echo "<p style='color:green; text-align:center;'>{$msg}</p>"; ?>
 
-   <label>Select Class</label>
+    <form method="POST" action="add_exam.php">
+        <label>Select Class</label>
 <select name="class_id" required class="clean-select">
     <option value="">-- Select Class --</option>
     <?php if ($classes && $classes->num_rows > 0): ?>
@@ -178,7 +179,7 @@ th { background:#00bfff; }
 
 
         <label>Exam Date</label>
-        <input type="date" name="exam_date" required>
+        <input type="date" name="exam_date" min="<?= date('Y-m-d') ?>" required>
 
         <label>Maximum Marks</label>
         <input type="number" name="max_marks" min="1" required>

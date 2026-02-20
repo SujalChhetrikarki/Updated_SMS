@@ -34,6 +34,23 @@ if (!$student) {
 }
 
 // =======================
+// Grading Function
+// =======================
+function getGrade($marks) {
+    if ($marks >= 90) return ['grade' => 'A+', 'color' => '#10b981'];
+    if ($marks >= 85) return ['grade' => 'A', 'color' => '#059669'];
+    if ($marks >= 80) return ['grade' => 'A-', 'color' => '#0d9488'];
+    if ($marks >= 75) return ['grade' => 'B+', 'color' => '#2563eb'];
+    if ($marks >= 70) return ['grade' => 'B', 'color' => '#1e40af'];
+    if ($marks >= 65) return ['grade' => 'B-', 'color' => '#1e3a8a'];
+    if ($marks >= 60) return ['grade' => 'C+', 'color' => '#ea580c'];
+    if ($marks >= 55) return ['grade' => 'C', 'color' => '#c2410c'];
+    if ($marks >= 50) return ['grade' => 'C-', 'color' => '#b45309'];
+    if ($marks >= 40) return ['grade' => 'D', 'color' => '#ea8500'];
+    return ['grade' => 'F', 'color' => '#dc2626'];
+}
+
+// =======================
 // 2️⃣ Fetch Attendance Summary
 // =======================
 $stmt2 = $conn->prepare("
@@ -54,10 +71,11 @@ while ($row = $res->fetch_assoc()) {
 $stmt2->close();
 
 // =======================
-// 3️⃣ Fetch Academic Performance
+// 3️⃣ Fetch Academic Performance (with percentage calculation)
 // =======================
 $stmt3 = $conn->prepare("
-    SELECT AVG(r.marks_obtained) AS avg_marks
+    SELECT AVG((r.marks_obtained / e.max_marks) * 100) AS percentage_avg,
+           AVG(r.marks_obtained) AS avg_marks
     FROM results r
     JOIN exams e ON r.exam_id = e.exam_id
     WHERE r.student_id = ? AND r.status = 'Approved'
@@ -67,6 +85,8 @@ $stmt3->execute();
 $result = $stmt3->get_result();
 $performance = $result->fetch_assoc();
 $average_marks = $performance['avg_marks'] ?? 0;
+$percentage_avg = $performance['percentage_avg'] ?? 0;
+$grade_info = getGrade($percentage_avg);
 $stmt3->close();
 
 $conn->close();
@@ -147,10 +167,13 @@ th {
     height: 300px;
     margin: 0 auto;
 }
-.performance-box {
-    text-align: center;
-    font-size: 18px;
-    padding: 10px;
+.grade-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
 }
 </style>
 </head>
@@ -187,7 +210,57 @@ th {
 
         <div class="card performance-box">
             <h2>🎯 Academic Performance Summary</h2>
-            <p><strong>Average Marks:</strong> <?= number_format($average_marks, 2) ?>%</p>
+            <p><strong>Average Marks:</strong> <?= number_format($average_marks, 2) ?> marks | <strong><?= number_format($percentage_avg, 2) ?>%</strong> - <span class="grade-badge" style="background-color: <?= $grade_info['color'] ?>;"><?= $grade_info['grade'] ?></span></p>
+        </div>
+
+        <div class="card">
+            <h2>📊 Grading Scale (Based on Percentage)</h2>
+            <table style="text-align: center;">
+                <tr>
+                    <th>Percentage Range (%)</th>
+                    <th>Grade</th>
+                    <th>Percentage Range (%)</th>
+                    <th>Grade</th>
+                </tr>
+                <tr>
+                    <td>90-100%</td>
+                    <td><span class="grade-badge" style="background-color: #10b981;">A+</span></td>
+                    <td>65-69%</td>
+                    <td><span class="grade-badge" style="background-color: #1e3a8a;">B-</span></td>
+                </tr>
+                <tr>
+                    <td>85-89%</td>
+                    <td><span class="grade-badge" style="background-color: #059669;">A</span></td>
+                    <td>60-64%</td>
+                    <td><span class="grade-badge" style="background-color: #ea580c;">C+</span></td>
+                </tr>
+                <tr>
+                    <td>80-84%</td>
+                    <td><span class="grade-badge" style="background-color: #0d9488;">A-</span></td>
+                    <td>55-59%</td>
+                    <td><span class="grade-badge" style="background-color: #c2410c;">C</span></td>
+                </tr>
+                <tr>
+                    <td>75-79%</td>
+                    <td><span class="grade-badge" style="background-color: #2563eb;">B+</span></td>
+                    <td>50-54%</td>
+                    <td><span class="grade-badge" style="background-color: #b45309;">C-</span></td>
+                </tr>
+                <tr>
+                    <td>70-74%</td>
+                    <td><span class="grade-badge" style="background-color: #1e40af;">B</span></td>
+                    <td>40-49%</td>
+                    <td><span class="grade-badge" style="background-color: #ea8500;">D</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2"></td>
+                    <td>0-39%</td>
+                    <td><span class="grade-badge" style="background-color: #dc2626;">F</span></td>
+                </tr>
+            </table>
+            <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+                💡 <em>Note: All grades are calculated based on percentage, which works with any exam maximum marks (50, 100, 200, etc.)</em>
+            </p>
         </div>
     </div>
 

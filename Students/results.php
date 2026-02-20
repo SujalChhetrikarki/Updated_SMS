@@ -23,7 +23,7 @@ $selected_term = $_GET['term'] ?? '';
 
 // ✅ Fetch approved results of this student, optionally filter by term
 $query = "
-SELECT r.marks_obtained, r.average_marks, e.exam_date, e.term, sub.subject_name
+SELECT r.marks_obtained, r.average_marks, e.exam_date, e.term, sub.subject_name, e.max_marks
 FROM results r
 JOIN exams e ON r.exam_id=e.exam_id
 JOIN subjects sub ON e.subject_id=sub.subject_id
@@ -44,16 +44,18 @@ if($selected_term != '') {
 $stmt_res->execute();
 $results = $stmt_res->get_result();
 
-// ✅ Calculate student overall average
-$total_marks = 0;
+// ✅ Calculate student overall average (based on percentage)
+$total_percentage = 0;
 $total_subjects = 0;
 $rows = [];
 while($r = $results->fetch_assoc()) {
+    $percentage = ($r['max_marks'] > 0) ? (($r['marks_obtained'] / $r['max_marks']) * 100) : 0;
+    $r['percentage'] = $percentage;
     $rows[] = $r;
-    $total_marks += $r['marks_obtained'];
+    $total_percentage += $percentage;
     $total_subjects++;
 }
-$overall_avg = ($total_subjects > 0) ? ($total_marks / $total_subjects) : 0;
+$overall_avg = ($total_subjects > 0) ? ($total_percentage / $total_subjects) : 0;
 
 // ✅ Fetch all students in same class with averages
 $sql_class = "
@@ -122,7 +124,7 @@ $stmt_terms->close();
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Result Sheet - Dignity Academy</title>
+<title>Report Card - <?= htmlspecialchars($student['name']) ?> - Dignity Academy</title>
 <style>
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
@@ -271,17 +273,34 @@ tfoot td {
     background: rgba(255,255,255,0.2);
 }
 
-.date-form select {
-    padding: 5px 10px;
-    border-radius: 5px;
+.grade-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+}
+
+.grading-scale-table {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
 }
 
 /* Print Styles */
 @media print {
     .sidebar,
     .print-btn,
-    form {
+    form,
+    .date-form {
         display: none !important;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
     }
 
     body {
@@ -293,24 +312,59 @@ tfoot td {
     .report-card {
         max-width: 100% !important;
         margin: 0 !important;
-        padding: 20px !important;
-        border: 2px solid #000 !important;
+        padding: 25px !important;
+        border: 3px solid #000 !important;
         box-shadow: none !important;
         border-radius: 0;
-        page-break-inside: avoid;
     }
 
     .school-header {
+        page-break-after: avoid;
+        border-bottom-width: 3px !important;
+    }
+
+    .student-info {
+        page-break-after: avoid;
+    }
+
+    h2, h3 {
         page-break-after: avoid;
     }
 
     table {
         page-break-inside: avoid;
+        border-collapse: collapse !important;
+        width: 100% !important;
+    }
+
+    table th, table td {
+        border: 1px solid #000 !important;
+        padding: 10px !important;
+        background-color: inherit !important;
+    }
+
+    table th {
+        background-color: #00bfff !important;
+        color: #fff !important;
+    }
+
+    .grading-scale-table {
+        page-break-before: always;
+        background: #fff !important;
+        border: 3px solid #000 !important;
+        border-radius: 0;
+        margin: 0 !important;
+        padding: 20px !important;
+    }
+
+    .footer {
+        margin-top: 40px;
+        page-break-after: avoid;
     }
 
     @page {
         size: A4;
-        margin: 15mm;
+        margin: 12mm;
     }
 }
 </style>
@@ -355,53 +409,151 @@ tfoot td {
 
     <h2>📄 Official Term-wise Exam Results</h2>
 
-    <table>
-        <tr>
-            <th>Term</th>
-            <th>Subject</th>
-            <th>Exam Date</th>
-            <th>Marks Obtained</th>
-            <th>Grade</th>
-            <th>Average Marks</th>
-        </tr>
-        <?php if(empty($rows)): ?>
-            <tr><td colspan="6">No results approved yet.</td></tr>
-        <?php else: ?>
-            <?php foreach ($rows as $r): 
-                $grade_info = getGrade($r['marks_obtained']);
-            ?>
-                <tr>
-                    <td><?= htmlspecialchars($r['term']) ?></td>
-                    <td><?= htmlspecialchars($r['subject_name']) ?></td>
-                    <td><?= htmlspecialchars($r['exam_date']) ?></td>
-                    <td><?= htmlspecialchars($r['marks_obtained']) ?></td>
-                    <td><span style="display: inline-block; padding: 4px 10px; border-radius: 4px; background-color: <?= $grade_info['color'] ?>; color: white; font-weight: bold;"><?= $grade_info['grade'] ?></span></td>
-                    <td><?= number_format($r['average_marks'],2) ?></td>
-                </tr>
-            <?php endforeach; ?>
-            <tfoot>
-                <tr>
-                    <td colspan="5">Overall Average: <span style="display: inline-block; padding: 4px 10px; border-radius: 4px; background-color: <?= $overall_grade['color'] ?>; color: white; font-weight: bold; margin-left: 5px;"><?= $overall_grade['grade'] ?></span></td>
-                    <td><?= number_format($overall_avg,2) ?></td>
-                </tr>
-            </tfoot>
-        <?php endif; ?>
-    </table>
-
-    <div class="footer">
-        <div class="signature">
-            <p>__________________</p>
-            <p>Class Teacher</p>
+    <?php if(empty($rows)): ?>
+        <p style="text-align: center; color: #666; font-size: 16px; padding: 20px;">No results approved yet.</p>
+    <?php else: ?>
+        <?php 
+        // Group results by term
+        $grouped_by_term = [];
+        foreach ($rows as $r) {
+            $term = $r['term'];
+            if (!isset($grouped_by_term[$term])) {
+                $grouped_by_term[$term] = [];
+            }
+            $grouped_by_term[$term][] = $r;
+        }
+        
+        // Display each term separately
+        foreach ($grouped_by_term as $term_name => $term_results):
+            $term_total_percentage = 0;
+            foreach ($term_results as $result) {
+                $term_total_percentage += $result['percentage'];
+            }
+            $term_avg = count($term_results) > 0 ? $term_total_percentage / count($term_results) : 0;
+            $term_grade = getGrade($term_avg);
+        ?>
+            <div style="margin-bottom: 30px;">
+                <h3 style="background: #00bfff; color: white; padding: 12px; border-radius: 6px; margin: 0 0 15px 0;">
+                    📚 <?= htmlspecialchars($term_name) ?>
+                </h3>
+                
+                <table style="margin-bottom: 15px;">
+                    <tr>
+                        <th>Subject</th>
+                        <th>Exam Date</th>
+                        <th>Marks Obtained</th>
+                        <th>Percentage</th>
+                        <th>Grade</th>
+                    </tr>
+                    <?php foreach ($term_results as $r): 
+                        $grade_info = getGrade($r['percentage']);
+                    ?>
+                        <tr>
+                            <td><?= htmlspecialchars($r['subject_name']) ?></td>
+                            <td><?= htmlspecialchars($r['exam_date']) ?></td>
+                            <td><?= htmlspecialchars($r['marks_obtained']) ?> / <?= htmlspecialchars($r['max_marks']) ?></td>
+                            <td><strong><?= number_format($r['percentage'], 2) ?>%</strong></td>
+                            <td><span class="grade-badge" style="background-color: <?= $grade_info['color'] ?>"><?= $grade_info['grade'] ?></span></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4"><strong><?= htmlspecialchars($term_name) ?> Average (%):</strong></td>
+                            <td>
+                                <span class="grade-badge" style="background-color: <?= $term_grade['color'] ?>">
+                                    <?= $term_grade['grade'] ?> (<?= number_format($term_avg, 2) ?>%)
+                                </span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        <?php endforeach; ?>
+        
+        <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-top: 20px;">
+            <h3 style="margin: 0 0 10px 0;">📊 Overall Performance</h3>
+            <p style="margin: 0; font-size: 16px;">
+                <strong>Overall Average:</strong> 
+                <span class="grade-badge" style="background-color: <?= $overall_grade['color'] ?>">
+                    <?= $overall_grade['grade'] ?> (<?= number_format($overall_avg, 2) ?>%)
+                </span>
+            </p>
         </div>
-        <div class="signature">
-            <p>__________________</p>
-            <p><strong>Sujal Chhetri Karki</strong><br>Principal</p>
+
+        <!-- Grading Scale -->
+        <div class="grading-scale-table">
+            <h3 style="margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #00bfff;">📊 Grading Scale (Based on Percentage)</h3>
+            <table style="width: 100%; text-align: center;">
+                <tr>
+                    <th>Percentage Range (%)</th>
+                    <th>Grade</th>
+                    <th>Percentage Range (%)</th>
+                    <th>Grade</th>
+                </tr>
+                <tr>
+                    <td>90-100%</td>
+                    <td><span class="grade-badge" style="background-color: #10b981;">A+</span></td>
+                    <td>65-69%</td>
+                    <td><span class="grade-badge" style="background-color: #1e3a8a;">B-</span></td>
+                </tr>
+                <tr>
+                    <td>85-89%</td>
+                    <td><span class="grade-badge" style="background-color: #059669;">A</span></td>
+                    <td>60-64%</td>
+                    <td><span class="grade-badge" style="background-color: #ea580c;">C+</span></td>
+                </tr>
+                <tr>
+                    <td>80-84%</td>
+                    <td><span class="grade-badge" style="background-color: #0d9488;">A-</span></td>
+                    <td>55-59%</td>
+                    <td><span class="grade-badge" style="background-color: #c2410c;">C</span></td>
+                </tr>
+                <tr>
+                    <td>75-79%</td>
+                    <td><span class="grade-badge" style="background-color: #2563eb;">B+</span></td>
+                    <td>50-54%</td>
+                    <td><span class="grade-badge" style="background-color: #b45309;">C-</span></td>
+                </tr>
+                <tr>
+                    <td>70-74%</td>
+                    <td><span class="grade-badge" style="background-color: #1e40af;">B</span></td>
+                    <td>40-49%</td>
+                    <td><span class="grade-badge" style="background-color: #ea8500;">D</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2"></td>
+                    <td>0-39%</td>
+                    <td><span class="grade-badge" style="background-color: #dc2626;">F</span></td>
+                </tr>
+            </table>
+            <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+                💡 <em>Note: All grades are calculated based on percentage, which works with any exam maximum marks (50, 100, 200, etc.)</em>
+            </p>
+        </div>
+    <?php endif; ?>
+
+    <div class="footer" style="margin-top: 50px; padding-top: 30px; border-top: 2px solid #ccc; display: flex; justify-content: space-between;">
+        <div style="text-align: center; width: 30%;">
+            <p style="margin: 50px 0 0 0; font-size: 13px;">__________________</p>
+            <p style="margin: 5px 0; font-size: 13px; font-weight: bold;">Class Teacher</p>
+        </div>
+        <div style="text-align: center; width: 30%;">
+            <p style="margin: 50px 0 0 0; font-size: 13px;">__________________</p>
+            <p style="margin: 5px 0; font-size: 13px;">Examination Date</p>
+        </div>
+        <div style="text-align: center; width: 30%;">
+            <p style="margin: 50px 0 0 0; font-size: 13px;">__________________</p>
+            <p style="margin: 5px 0; font-size: 13px; font-weight: bold;">Principal</p>
+            <p style="margin: 3px 0; font-size: 12px;">Sujal Chhetri Karki</p>
         </div>
     </div>
 </div>
 
-<div class="print-btn">
-    <button onclick="window.print()">🖨️ Print Result</button>
+<div class="print-btn" style="text-align: center; margin: 30px auto; padding: 20px; background: #f0f8ff; border-radius: 8px; border: 2px solid #00bfff;">
+    <button onclick="window.print()" style="background: #00bfff; color: #fff; border: none; padding: 15px 30px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
+        🖨️ Print Report Card
+    </button>
+    <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">Click to print this report card as a PDF or physical copy</p>
 </div>
 
 </body>

@@ -6,6 +6,7 @@ if (!isset($_SESSION['student_id'])) {
 }
 
 include '../Database/db_connect.php';
+include '../includes/ranking_algorithms.php';
 
 // ✅ Check DB connection
 if (!$conn) {
@@ -74,49 +75,91 @@ function getGrade($marks) {
     return ['grade' => 'F', 'color' => '#dc2626'];                         // F  (0-39)
 }
 
-// ✅ Fetch student's overall marks and grade
-$marks_sql = "SELECT IFNULL(ROUND(AVG(r.marks_obtained), 2), 0) AS avg_marks, COUNT(*) as result_count
+// ✅ Get selected term from query parameter
+$selected_term = $_GET['term'] ?? 'all';
+
+// ✅ Fetch available terms for student
+$terms_sql = "SELECT DISTINCT e.term FROM results r 
+              JOIN exams e ON r.exam_id = e.exam_id 
+              WHERE r.student_id = ? AND r.status = 'Approved' 
+              ORDER BY e.term";
+$stmt_terms = $conn->prepare($terms_sql);
+$stmt_terms->bind_param("s", $_SESSION['student_id']);
+$stmt_terms->execute();
+$terms_result = $stmt_terms->get_result();
+$available_terms = [];
+while ($term_row = $terms_result->fetch_assoc()) {
+    $available_terms[] = $term_row['term'];
+}
+$stmt_terms->close();
+
+// ✅ Fetch student's marks and grade (with optional term filter) - Works with any max marks!
+$marks_sql = "SELECT 
+              IFNULL(ROUND(AVG((r.marks_obtained / e.max_marks) * 100), 2), 0) AS percentage_avg,
+              IFNULL(ROUND(AVG(r.marks_obtained), 2), 0) AS avg_marks,
+              COUNT(*) as result_count,
+              GROUP_CONCAT(DISTINCT e.max_marks) as max_marks_list
               FROM results r
+              JOIN exams e ON r.exam_id = e.exam_id
               WHERE r.student_id = ? AND r.status = 'Approved'";
+if ($selected_term !== 'all') {
+    $marks_sql .= " AND e.term = ?";
+}
 $stmt_marks = $conn->prepare($marks_sql);
-$stmt_marks->bind_param("s", $_SESSION['student_id']);
+if ($selected_term !== 'all') {
+    $stmt_marks->bind_param("ss", $_SESSION['student_id'], $selected_term);
+} else {
+    $stmt_marks->bind_param("s", $_SESSION['student_id']);
+}
 $stmt_marks->execute();
 $marks_result = $stmt_marks->get_result();
 $marks_data = $marks_result->fetch_assoc();
+$percentage_avg = $marks_data['percentage_avg'];
 $avg_marks = $marks_data['avg_marks'];
 $result_count = $marks_data['result_count'];
-$grade_info = getGrade($avg_marks);
+$max_marks_list = $marks_data['max_marks_list'];
+// Use percentage for grading (0-100 scale)
+$grade_info = getGrade($percentage_avg);
 $stmt_marks->close();
 
-// ✅ Fetch student's rank in their class
+// ✅ Fetch student's rank in their class using sorting algorithms
 $class_id = $student['class_id'] ?? null;
 $student_rank = 0;
 $total_class_students = 0;
+$algorithm_used = 'usort'; // Can be: usort, quicksort, mergesort, heapsort, countingsort
 
 if ($class_id) {
+    // Fetch all students in class with their average marks
     $rank_sql = "
-        SELECT s.student_id, ROUND(AVG(r.marks_obtained), 2) AS avg_marks
+        SELECT s.student_id, s.name, ROUND(AVG(r.marks_obtained), 2) AS avg_marks
         FROM students s
         LEFT JOIN results r ON s.student_id = r.student_id AND r.status = 'Approved'
         WHERE s.class_id = ?
-        GROUP BY s.student_id
-        ORDER BY avg_marks DESC";
+        GROUP BY s.student_id";
     
     $stmt_rank = $conn->prepare($rank_sql);
     $stmt_rank->bind_param("i", $class_id);
     $stmt_rank->execute();
     $rank_result = $stmt_rank->get_result();
-    $total_class_students = $rank_result->num_rows;
     
-    $rank = 1;
-    while ($rank_row = $rank_result->fetch_assoc()) {
-        if ($rank_row['student_id'] == $_SESSION['student_id']) {
-            $student_rank = $rank;
-            break;
-        }
-        $rank++;
+    // Fetch all students data
+    $students_data = [];
+    while ($row = $rank_result->fetch_assoc()) {
+        $students_data[] = $row;
     }
     $stmt_rank->close();
+    
+    // Use ranking algorithm (can be changed: quicksort, mergesort, heapsort, countingsort)
+    if (!empty($students_data)) {
+        $ranking_result = StudentRankingAlgorithms::getRankWithMetrics(
+            $students_data, 
+            $_SESSION['student_id'], 
+            $algorithm_used
+        );
+        
+        $student_rank = $ranking_result['rank'];
+        $total_class_students = $ranking_result['total'];
+    }
 }
 $conn->close();
 ?>
@@ -200,24 +243,73 @@ $conn->close();
             color: #333;
         }
         .notice-card {
-            background: #fdfdfd;
-            border-left: 4px solid #007bff;
-            padding: 12px 15px;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-left: 4px solid #667eea;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .notice-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(20px, -20px);
         }
         .notice-card h3 {
-            margin: 0;
-            font-size: 16px;
-            color: #007bff;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        .notice-card h3::before {
+            content: '📢';
+            font-size: 22px;
         }
         .notice-card p {
-            margin: 5px 0;
-            color: #555;
+            margin: 10px 0;
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.6;
+            font-size: 15px;
+            position: relative;
+            z-index: 1;
         }
         .notice-card small {
-            color: #777;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            display: block;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .notice-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+        }
+        .notice-header h2 {
+            margin: 0;
+            font-size: 22px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .chart-container {
             width: 300px;
@@ -242,6 +334,41 @@ $conn->close();
             color: white;
             font-weight: bold;
         }
+        
+        /* Vibrant Notice Animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(360px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 6px 20px rgba(0, 191, 255, 0.25), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            }
+            50% {
+                box-shadow: 0 8px 28px rgba(0, 191, 255, 0.4), inset 0 0 30px rgba(0, 255, 255, 0.2);
+            }
+        }
+        @keyframes float-gentle {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+        .notice-vibrant {
+            animation: slideInRight 0.6s ease-out, pulse-glow 2.5s ease-in-out infinite, float-gentle 3s ease-in-out infinite;
+        }
+        .notice-vibrant:hover {
+            box-shadow: 0 10px 32px rgba(0, 191, 255, 0.35), inset 0 0 40px rgba(0, 255, 255, 0.25) !important;
+            transform: translateY(-6px) !important;
+        }
     </style>
 </head>
 <body>
@@ -260,8 +387,56 @@ $conn->close();
     <div class="main">
         <div class="header">🎓 Welcome, <?php echo htmlspecialchars($student['name']); ?></div>
 
+        <!-- Notices - Corner Alert (Top Right) - Vibrant -->
+        <?php 
+        $latest_notice = null;
+        if ($notices && $notices->num_rows > 0) {
+            $latest_notice = $notices->fetch_assoc();
+        }
+        ?>
+        <?php if ($latest_notice): ?>
+        <div class="notice-vibrant" style="position: fixed; top: 20px; right: 20px; width: 320px; background: linear-gradient(135deg, #00bfff 0%, #0095cc 100%); border-radius: 12px; padding: 16px 18px; box-shadow: 0 6px 20px rgba(0, 191, 255, 0.25), inset 0 0 20px rgba(0, 255, 255, 0.1); border-right: 4px solid #00ffff; border-top: 2px solid #00ffff; z-index: 999; display: flex; align-items: flex-start; gap: 12px; backdrop-filter: blur(10px);">
+            <span style="font-size: 26px; flex-shrink: 0; margin-top: 2px; animation: bounce 2s infinite;">📢</span>
+            <div style="flex: 1; min-width: 0;">
+                <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"><?= htmlspecialchars($latest_notice['title']); ?></h4>
+                <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 13px; line-height: 1.5; font-weight: 500;"><?= substr(htmlspecialchars($latest_notice['message']), 0, 90) . (strlen($latest_notice['message']) > 90 ? '...' : ''); ?></p>
+                <small style="color: rgba(255,255,255,0.8); font-size: 12px; margin-top: 6px; display: block; font-weight: 600;">🕒 <?= date('d M Y, h:i', strtotime($latest_notice['created_at'])); ?></small>
+            </div>
+            <div style="width: 3px; height: 100%; background: linear-gradient(to bottom, #00ffff, #0095cc, transparent); border-radius: 2px; opacity: 0.7;"></div>
+        </div>
+        <style>
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+        </style>
+        <?php endif; ?>
+
+        <!-- Term Filter -->
+        <?php if (!empty($available_terms)): ?>
+        <div class="card" style="margin-bottom: 15px;">
+            <form method="GET" style="display: flex; align-items: center; gap: 10px;">
+                <label style="font-weight: bold;">📚 Filter by Term:</label>
+                <select name="term" onchange="this.form.submit()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer;">
+                    <option value="all" <?php echo $selected_term === 'all' ? 'selected' : ''; ?>>All Terms</option>
+                    <?php foreach ($available_terms as $term_opt): ?>
+                        <option value="<?php echo htmlspecialchars($term_opt); ?>" <?php echo $selected_term === $term_opt ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($term_opt); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
+        </div>
+        <?php endif; ?>
+
         <div class="card">
-            <h2>📌 Student Information</h2>
+            <h2>📌 Student Information
+            <?php if ($selected_term !== 'all'): ?>
+                <span style="font-size: 14px; color: #666;">(Viewing: <?php echo htmlspecialchars($selected_term); ?>)</span>
+            <?php else: ?>
+                <span style="font-size: 14px; color: #666;">(Overall)</span>
+            <?php endif; ?>
+            </h2>
             <table>
                 <tr><th>Student ID</th><td><?php echo htmlspecialchars($student['student_id']); ?></td></tr>
                 <tr><th>Name</th><td><?php echo htmlspecialchars($student['name']); ?></td></tr>
@@ -271,27 +446,60 @@ $conn->close();
                 <tr><th>Class</th><td><?php echo htmlspecialchars($student['class_name']); ?></td></tr>
                 <tr><th>Class Teacher</th><td><?php echo !empty($student['teacher_name']) ? htmlspecialchars($student['teacher_name']) : 'Not Assigned'; ?></td></tr>
                 <?php if ($result_count > 0): ?>
-                <tr><th>Overall Marks</th><td><?php echo number_format($avg_marks, 2); ?>/100 - <span class="grade-badge" style="background-color: <?php echo $grade_info['color']; ?>;"><?php echo $grade_info['grade']; ?></span></td></tr>
+                <tr><th>Marks <?php echo $selected_term !== 'all' ? '(' . htmlspecialchars($selected_term) . ')' : '(Overall)'; ?></th><td><?php echo number_format($avg_marks, 2); ?> marks | <strong><?php echo number_format($percentage_avg, 2); ?>%</strong> - <span class="grade-badge" style="background-color: <?php echo $grade_info['color']; ?>;"><?php echo $grade_info['grade']; ?></span></td></tr>
                 <?php endif; ?>
                 <tr><th>Class Ranking</th><td><span class="rank-badge"><?php echo $student_rank > 0 ? "Rank #" . $student_rank . " out of " . $total_class_students : "No ranking data"; ?></span></td></tr>
             </table>
         </div>
 
         <div class="card">
-            <h2>📢 Latest Notices</h2>
-            <?php
-            if ($notices && $notices->num_rows > 0) {
-                while ($notice = $notices->fetch_assoc()) {
-                    echo "<div class='notice-card'>";
-                    echo "<h3>" . htmlspecialchars($notice['title']) . "</h3>";
-                    echo "<p>" . nl2br(htmlspecialchars($notice['message'])) . "</p>";
-                    echo "<small>🕒 " . date('d M Y, h:i A', strtotime($notice['created_at'])) . "</small>";
-                    echo "</div>";
-                }
-            } else {
-                echo "<p>No new notices.</p>";
-            }
-            ?>
+            <h2>📊 Grading Scale (Based on Percentage)</h2>
+            <table style="width: 100%; text-align: center;">
+                <tr>
+                    <th>Percentage Range (%)</th>
+                    <th>Grade</th>
+                    <th>Percentage Range (%)</th>
+                    <th>Grade</th>
+                </tr>
+                <tr>
+                    <td>90-100%</td>
+                    <td><span class="grade-badge" style="background-color: #10b981;">A+</span></td>
+                    <td>65-69%</td>
+                    <td><span class="grade-badge" style="background-color: #1e3a8a;">B-</span></td>
+                </tr>
+                <tr>
+                    <td>85-89%</td>
+                    <td><span class="grade-badge" style="background-color: #059669;">A</span></td>
+                    <td>60-64%</td>
+                    <td><span class="grade-badge" style="background-color: #ea580c;">C+</span></td>
+                </tr>
+                <tr>
+                    <td>80-84%</td>
+                    <td><span class="grade-badge" style="background-color: #0d9488;">A-</span></td>
+                    <td>55-59%</td>
+                    <td><span class="grade-badge" style="background-color: #c2410c;">C</span></td>
+                </tr>
+                <tr>
+                    <td>75-79%</td>
+                    <td><span class="grade-badge" style="background-color: #2563eb;">B+</span></td>
+                    <td>50-54%</td>
+                    <td><span class="grade-badge" style="background-color: #b45309;">C-</span></td>
+                </tr>
+                <tr>
+                    <td>70-74%</td>
+                    <td><span class="grade-badge" style="background-color: #1e40af;">B</span></td>
+                    <td>40-49%</td>
+                    <td><span class="grade-badge" style="background-color: #ea8500;">D</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2"></td>
+                    <td>0-39%</td>
+                    <td><span class="grade-badge" style="background-color: #dc2626;">F</span></td>
+                </tr>
+            </table>
+            <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+                💡 <em>Note: All grades are calculated based on percentage, which works with any exam maximum marks (50, 100, 200, etc.)</em>
+            </p>
         </div>
     </div>
 </body>

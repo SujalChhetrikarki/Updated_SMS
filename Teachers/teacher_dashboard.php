@@ -104,7 +104,7 @@ header h1 {
     border-left: 5px solid #0066cc;
     padding-left: 10px;
 }
-.profile-card, .notice-card, .class-card, .subject-card {
+.profile-card, .class-card, .subject-card {
     background: white;
     border-radius: 10px;
     padding: 20px;
@@ -112,22 +112,65 @@ header h1 {
     margin-bottom: 20px;
     transition: transform 0.3s, box-shadow 0.3s;
 }
-.profile-card:hover, .notice-card:hover, .class-card:hover, .subject-card:hover {
+.profile-card:hover, .class-card:hover, .subject-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 .profile-card p {
     margin: 8px 0;
 }
+.notice-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+    margin-bottom: 20px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+.notice-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+}
+.notice-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
+}
 .notice-card h4 {
-    margin: 0 0 8px 0;
-    font-weight: 600;
+    margin: 0 0 12px 0;
+    font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    font-size: 18px;
+    color: #fff;
+    position: relative;
+    z-index: 1;
+}
+.notice-card p {
+    margin: 12px 0;
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.6;
+    font-size: 15px;
+    position: relative;
+    z-index: 1;
 }
 .notice-card small {
-    color: #777;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    display: block;
+    margin-top: 12px;
+    position: relative;
+    z-index: 1;
 }
 .class-card, .subject-card {
     display: flex;
@@ -196,6 +239,64 @@ tr:hover { background: #f9f9f9; }
 
 <div class="container">
 
+    <!-- Notices - Corner Alert (Top Right) - Vibrant -->
+    <?php 
+    $latest_notice = null;
+    if ($notices && $notices->num_rows > 0) {
+        $latest_notice = $notices->fetch_assoc();
+    }
+    ?>
+    <?php if ($latest_notice): ?>
+    <div class="notice-vibrant-teacher" style="position: fixed; top: 75px; right: 20px; width: 320px; background: linear-gradient(135deg, #0066cc 0%, #004aad 100%); border-radius: 12px; padding: 16px 18px; box-shadow: 0 6px 20px rgba(0, 102, 204, 0.25), inset 0 0 20px rgba(0, 150, 255, 0.1); border-right: 4px solid #00bfff; border-top: 2px solid #00d4ff; z-index: 999; display: flex; align-items: flex-start; gap: 12px; backdrop-filter: blur(10px);">
+        <span style="font-size: 26px; flex-shrink: 0; margin-top: 2px; animation: bounce-teacher 2s infinite;">📢</span>
+        <div style="flex: 1; min-width: 0;">
+            <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"><?= htmlspecialchars($latest_notice['title']); ?></h4>
+            <p style="margin: 0; color: rgba(255,255,255,0.95); font-size: 13px; line-height: 1.5; font-weight: 500;"><?= substr(htmlspecialchars($latest_notice['message']), 0, 90) . (strlen($latest_notice['message']) > 90 ? '...' : ''); ?></p>
+            <small style="color: rgba(255,255,255,0.8); font-size: 12px; margin-top: 6px; display: block; font-weight: 600;">🕒 <?= date('d M Y, h:i', strtotime($latest_notice['created_at'])); ?></small>
+        </div>
+        <div style="width: 3px; height: 100%; background: linear-gradient(to bottom, #00d4ff, #004aad, transparent); border-radius: 2px; opacity: 0.7;"></div>
+    </div>
+    <style>
+        @keyframes slideInRight-teacher {
+            from {
+                transform: translateX(360px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes pulse-glow-teacher {
+            0%, 100% {
+                box-shadow: 0 6px 20px rgba(0, 102, 204, 0.25), inset 0 0 20px rgba(0, 150, 255, 0.1);
+            }
+            50% {
+                box-shadow: 0 8px 28px rgba(0, 102, 204, 0.4), inset 0 0 30px rgba(0, 150, 255, 0.2);
+            }
+        }
+        @keyframes float-gentle-teacher {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+        .notice-vibrant-teacher {
+            animation: slideInRight-teacher 0.6s ease-out, pulse-glow-teacher 2.5s ease-in-out infinite, float-gentle-teacher 3s ease-in-out infinite !important;
+        }
+        .notice-vibrant-teacher:hover {
+            box-shadow: 0 10px 32px rgba(0, 102, 204, 0.35), inset 0 0 40px rgba(0, 150, 255, 0.25) !important;
+            transform: translateY(-6px) !important;
+        }
+        @keyframes bounce-teacher {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+    </style>
+    <?php endif; ?>
+
     <!-- Profile -->
     <div class="section">
         <h2>Profile</h2>
@@ -205,22 +306,6 @@ tr:hover { background: #f9f9f9; }
             <p><strong><i class="fa fa-graduation-cap"></i> Specialization:</strong> <?= htmlspecialchars($teacher['specialization']); ?></p>
             <a class="btn" href="change_password.php"><i class="fa fa-key"></i> Change Password</a>
         </div>
-    </div>
-
-    <!-- Notices -->
-    <div class="section">
-        <h2>Recent Notices</h2>
-        <?php if ($notices && $notices->num_rows>0): ?>
-            <?php while($n=$notices->fetch_assoc()): ?>
-            <div class="notice-card">
-                <h4><i class="fa fa-bell"></i> <?= htmlspecialchars($n['title']); ?></h4>
-                <p><?= nl2br(htmlspecialchars($n['message'])); ?></p>
-                <small>Posted on: <?= date('d M Y, h:i A', strtotime($n['created_at'])); ?></small>
-            </div>
-            <?php endwhile; ?>
-        <?php else: ?>
-            <p>No notices available.</p>
-        <?php endif; ?>
     </div>
 
     <!-- Classes -->

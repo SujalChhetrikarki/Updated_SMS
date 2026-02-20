@@ -185,7 +185,7 @@ input {
 
         <form method="POST">
             <label>Exam Date</label>
-            <input type="date" name="exam_date" value="<?= htmlspecialchars($exam['exam_date']) ?>" required>
+            <input type="date" name="exam_date" value="<?= htmlspecialchars($exam['exam_date']) ?>" min="<?= date('Y-m-d') ?>" required>
 
             <label>Maximum Marks</label>
             <input type="number" name="max_marks" value="<?= htmlspecialchars($exam['max_marks']) ?>" min="1" required>

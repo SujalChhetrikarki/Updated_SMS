@@ -142,7 +142,7 @@ input[type="radio"] { cursor: pointer; }
 <form method="GET" class="date-form">
     <input type="hidden" name="class_id" value="<?= htmlspecialchars($class_id); ?>">
     <label><strong>Select Date:</strong></label>
-    <input type="date" name="date" value="<?= htmlspecialchars($date); ?>">
+    <input type="date" name="date" value="<?= htmlspecialchars($date); ?>" max="<?= date('Y-m-d') ?>">
     <button type="submit"><i class="fa fa-calendar"></i> Go</button>
 </form>
 
