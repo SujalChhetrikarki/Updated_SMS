@@ -216,7 +216,6 @@ class StudentRankingAlgorithms {
             $marks = intval($student['avg_marks']);
             $count[$marks][] = $student;
         }
-
         // Rebuild sorted array (descending)
         $result = [];
         for ($i = $maxMarks; $i >= 0; $i--) {
