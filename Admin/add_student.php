@@ -119,25 +119,57 @@ button:hover { background:#2563eb; }
 a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b82f6; }
 
 /* ===== Student Viewer ===== */
-.student-box { max-width:1000px; background:#fff; padding:25px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.15); margin:30px auto; }
+.student-box { 
+    width: 100%;
+    max-width: 1400px;
+    background:#fff; 
+    padding:25px; 
+    border-radius:12px; 
+    box-shadow:0 4px 20px rgba(0,0,0,0.15); 
+    margin:30px auto;
+}
 .student-box h3 { text-align:center; margin-bottom:20px; color:#333; }
-.student-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:20px; }
+.student-grid { 
+    display:grid; 
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); 
+    gap:15px;
+    width: 100%;
+}
 .student-card {
-    background:#f8f9fa; border-radius:10px; padding:15px; border-left:5px solid #3b82f6; transition:0.3s;
+    background:#f8f9fa; 
+    border-radius:10px; 
+    padding:15px; 
+    border-left:5px solid #3b82f6; 
+    transition:0.3s;
 }
 .student-card:hover { transform:translateY(-5px); box-shadow:0 6px 15px rgba(0,0,0,0.15); }
-.student-card h4 { margin:0 0 8px; color:#3b82f6; }
-.student-card p { margin:4px 0; font-size:14px; color:#333; }
-.empty { text-align:center; font-size:15px; color:#6b7280; }
+.student-card h4 { margin:0 0 8px; color:#3b82f6; font-size:16px; }
+.student-card p { margin:4px 0; font-size:13px; color:#555; }
+.empty { text-align:center; font-size:15px; color:#6b7280; padding: 40px; grid-column: 1/-1; }
 
 /* ===== Class Filter ===== */
-.filter-box { display:flex; gap:10px; justify-content:center; margin-bottom:20px; }
-.filter-box select { width:200px; }
-.filter-box button { width:auto; padding:10px 20px; }
+.filter-box { display:flex; gap:10px; justify-content:center; margin-bottom:20px; flex-wrap: wrap; }
+.filter-box select { width:250px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+.filter-box button { width:auto; padding:10px 30px; }
+
+@media(max-width:1024px){
+    .student-box { padding: 20px; margin: 20px auto; }
+    .student-grid { grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 12px; }
+    .filter-box { flex-wrap: wrap; }
+    .filter-box select { width: 100%; max-width: 250px; }
+}
 
 @media(max-width:768px){
     .main { padding:100px 15px 15px; }
-    .student-grid { grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); }
+    .student-grid { grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; }
+    .student-box { padding: 15px; margin: 15px 0; }
+    .filter-box { flex-direction: column; align-items: stretch; }
+    .filter-box select, .filter-box button { width: 100%; }
+}
+
+@media(max-width:480px){
+    .student-grid { grid-template-columns: 1fr; }
+    .container { padding: 15px 20px; margin-bottom: 20px; }
 }
 </style>
 </head>
@@ -237,16 +269,34 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 function showStudents() {
     const selected = document.getElementById("classFilter").value;
     const container = document.getElementById("studentContainer");
+    const grid = container.querySelector(".student-grid");
     const cards = document.querySelectorAll(".student-card");
+    
     container.style.display = "block";
     let anyVisible = false;
-    cards.forEach(card=>{
-        if(selected==="" || card.dataset.class===selected){
-            card.style.display="block";
-            anyVisible=true;
-        } else card.style.display="none";
+    
+    cards.forEach(card => {
+        if(selected === "" || card.dataset.class === selected) {
+            card.style.display = "block";
+            anyVisible = true;
+        } else {
+            card.style.display = "none";
+        }
     });
-    if(!anyVisible) container.innerHTML='<div class="empty">No students found for this class.</div>';
+    
+    // Show/hide empty message without destroying the grid
+    let emptyMsg = grid.querySelector(".empty-message");
+    if(!anyVisible) {
+        if(!emptyMsg) {
+            emptyMsg = document.createElement("div");
+            emptyMsg.className = "empty empty-message";
+            emptyMsg.textContent = "No students found for this class.";
+            grid.appendChild(emptyMsg);
+        }
+        emptyMsg.style.display = "block";
+    } else {
+        if(emptyMsg) emptyMsg.style.display = "none";
+    }
 }
 </script>
 
