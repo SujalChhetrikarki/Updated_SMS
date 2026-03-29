@@ -11,6 +11,13 @@ if ($conn->connect_error) {
 $email = trim($_POST['email']);
 $password = trim($_POST['password']);
 
+// ✅ NEW: Input validation
+if (empty($email) || empty($password)) {
+    $_SESSION['error'] = "❌ Email and password are required";
+    header("Location: teacher.php");
+    exit;
+}
+
 // ✅ FIXED QUERY (teacher_id instead of id)
 $sql = "
     SELECT teacher_id, name, email, password, specialization
@@ -40,15 +47,25 @@ if ($teacher = $result->fetch_assoc()) {
         $_SESSION['teacher_email'] = $teacher['email'];
         $_SESSION['specialization'] = $teacher['specialization'];
 
+        // ✅ NEW: Success message
+        $_SESSION['success'] = "✓ Welcome " . $teacher['name'];
+        unset($_SESSION['error']);
+
         header("Location: teacher_dashboard.php");
         exit;
 
     } else {
-        echo "<script>alert('Invalid Password'); window.location.href='teacher.php';</script>";
+        // ✅ NEW: Session-based error instead of alert
+        $_SESSION['error'] = "❌ Invalid Password. Please try again.";
+        header("Location: teacher.php");
+        exit;
     }
 
 } else {
-    echo "<script>alert('Email not found'); window.location.href='teacher.php';</script>";
+    // ✅ NEW: Session-based error instead of alert
+    $_SESSION['error'] = "❌ Email not found. Please check and try again.";
+    header("Location: teacher.php");
+    exit;
 }
 
 $stmt->close();

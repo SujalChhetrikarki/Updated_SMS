@@ -19,6 +19,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email    = trim($_POST['email']);   // ✅ matches DB column
     $password = trim($_POST['password']);
 
+    // ✅ NEW: Input validation
+    if (empty($email) || empty($password)) {
+        $_SESSION['error'] = "❌ Email and password are required";
+        header("Location: admin.php");
+        exit();
+    }
+
     $stmt = $conn->prepare("
         SELECT admin_id, name, email, password
         FROM admins
@@ -43,16 +50,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $_SESSION['admin_name']  = $row['name'];
             $_SESSION['admin_email'] = $row['email'];
 
+            // ✅ NEW: Success message
+            $_SESSION['success'] = "✓ Welcome " . $row['name'];
+            unset($_SESSION['error']);
+
             header("Location: index.php");
             exit();
 
         } else {
-            header("Location: admin.php?error=wrong_password");
+            // ✅ NEW: Session-based error instead of query string
+            $_SESSION['error'] = "❌ Invalid Password. Please try again.";
+            header("Location: admin.php");
             exit();
         }
 
     } else {
-        header("Location: admin.php?error=not_found");
+        // ✅ NEW: Session-based error instead of query string
+        $_SESSION['error'] = "❌ Email not found. Please check and try again.";
+        header("Location: admin.php");
         exit();
     }
 }

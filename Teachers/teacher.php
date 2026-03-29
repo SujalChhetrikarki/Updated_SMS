@@ -116,6 +116,43 @@ main{
   margin-bottom:30px;
 }
 
+/* Error Message Styling */
+.error-message {
+  background:rgba(239, 68, 68, 0.9);
+  border-left:4px solid #ef4444;
+  color:#fff;
+  padding:12px 15px;
+  border-radius:8px;
+  margin-bottom:20px;
+  font-size:14px;
+  font-weight:500;
+  animation:slideDown 0.4s ease;
+}
+
+/* Success Message Styling */
+.success-message {
+  background:rgba(34, 197, 94, 0.9);
+  border-left:4px solid #22c55e;
+  color:#fff;
+  padding:12px 15px;
+  border-radius:8px;
+  margin-bottom:20px;
+  font-size:14px;
+  font-weight:500;
+  animation:slideDown 0.4s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity:0;
+    transform:translateY(-10px);
+  }
+  to {
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
 .login-card input[type="email"],
 .login-card input[type="password"]{
   width:100%;
@@ -178,6 +215,21 @@ footer{
   <div class="login-card">
     <h2>Teacher Login</h2>
     <p>Enter your credentials to continue</p>
+    
+    <?php
+      session_start();
+      // Display error message if exists
+      if (isset($_SESSION['error'])) {
+        echo '<div class="error-message">' . $_SESSION['error'] . '</div>';
+        unset($_SESSION['error']);
+      }
+      // Display success message if exists
+      if (isset($_SESSION['success'])) {
+        echo '<div class="success-message">' . $_SESSION['success'] . '</div>';
+        unset($_SESSION['success']);
+      }
+    ?>
+    
     <form action="teacher_login.php" method="post">
       <input type="email" name="email" placeholder="Email" required>
       <input type="password" name="password" placeholder="Password" required>

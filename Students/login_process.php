@@ -4,12 +4,21 @@ session_start();
 // DB Connection
 $conn = new mysqli("localhost", "root", "", "sms");
 if ($conn->connect_error) {
-    die("Database Connection failed");
+    $_SESSION['error'] = "Database Connection failed";
+    header("Location: Student.php");
+    exit;
 }
 
 // Get inputs
 $email = trim($_POST['email']);
 $password = trim($_POST['password']);
+
+// Validate inputs
+if (empty($email) || empty($password)) {
+    $_SESSION['error'] = "❌ Email and password are required";
+    header("Location: Student.php");
+    exit;
+}
 
 // Prepared statement (SECURE)
 $stmt = $conn->prepare("
@@ -32,16 +41,24 @@ if ($student = $result->fetch_assoc()) {
         $_SESSION['student_name']  = $student['name'];
         $_SESSION['student_email'] = $student['email'];
         $_SESSION['class_id']      = $student['class_id'];
+        $_SESSION['success']       = "✓ Welcome " . $student['name'];
+        
+        // Clear error
+        unset($_SESSION['error']);
 
         header("Location: student_dashboard.php");
         exit;
 
     } else {
-        echo "<script>alert('Invalid Password'); window.location.href='Student.php';</script>";
+        $_SESSION['error'] = "❌ Invalid Password. Please try again.";
+        header("Location: Student.php");
+        exit;
     }
 
 } else {
-    echo "<script>alert('Email not found'); window.location.href='Student.php';</script>";
+    $_SESSION['error'] = "❌ Email not found. Please check and try again.";
+    header("Location: Student.php");
+    exit;
 }
 
 $stmt->close();
