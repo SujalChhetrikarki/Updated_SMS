@@ -183,6 +183,71 @@ button:hover{
   font-size:15px;
 }
 
+/* ===== SCHOOL SHOWCASE ===== */
+.school-showcase {
+  max-width:1000px;
+  margin:60px auto;
+  padding:40px 20px;
+  text-align:center;
+}
+
+.school-showcase h2 {
+  font-size:28px;
+  margin-bottom:30px;
+  text-shadow:0 2px 10px rgba(0,0,0,0.3);
+}
+
+.school-photo-container {
+  position:relative;
+  width:100%;
+  max-width:600px;
+  margin:0 auto 30px;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 20px 50px rgba(0,0,0,0.4);
+  animation:zoomIn 0.8s ease;
+}
+
+@keyframes zoomIn {
+  from {
+    opacity:0;
+    transform:scale(0.95);
+  }
+  to {
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+.school-photo-container img {
+  width:100%;
+  height:auto;
+  display:block;
+  object-fit:cover;
+}
+
+.school-info {
+  background:rgba(255,255,255,0.1);
+  backdrop-filter:blur(15px);
+  padding:25px;
+  border-radius:15px;
+  border:1px solid rgba(255,255,255,0.2);
+  max-width:600px;
+  margin:0 auto;
+}
+
+.school-info h3 {
+  font-size:20px;
+  margin-bottom:12px;
+  color:#fff;
+}
+
+.school-info p {
+  font-size:14px;
+  line-height:1.6;
+  opacity:0.9;
+}
+
 /* ===== FOOTER ===== */
 footer{
   padding:16px;
@@ -228,6 +293,24 @@ footer{
 
   </div>
 </main>
+
+<!-- School Showcase Section -->
+<section class="school-showcase">
+  <h2>🎓 Welcome to Diversity Academy</h2>
+  
+  <div class="school-photo-container">
+    <img src="Images/logo.jpg" alt="Diversity Academy School Building">
+  </div>
+
+  <div class="school-info">
+    <h3>Excellence in Education</h3>
+    <p>
+      Diversity Academy is committed to providing world-class education with a focus on 
+      innovation, inclusivity, and student success. Our state-of-the-art facilities and 
+      dedicated faculty ensure every student reaches their full potential.
+    </p>
+  </div>
+</section>
 
 <section class="about">
   <h3>About Diversity Academy</h3>
