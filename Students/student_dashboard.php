@@ -75,6 +75,77 @@ function getGrade($marks) {
     return ['grade' => 'F', 'color' => '#dc2626'];                         // F  (0-39)
 }
 
+// ✅ SIMPLE RANKING FUNCTION - Easy to Understand
+// This function calculates student's rank in their class, either for a specific term or overall
+function calculateStudentRank($conn, $student_id, $class_id, $selected_term) {
+    // If no class, return no rank
+    if (!$class_id) {
+        return ['rank' => 0, 'total' => 0, 'display' => 'No class assigned'];
+    }
+    
+    // STEP 1: Build the comparison list based on term selection
+    if ($selected_term === 'all') {
+        // OVERALL RANKING: Get all students' average marks (all terms combined)
+        $query = "
+            SELECT s.student_id, 
+                   IFNULL(ROUND(AVG(r.marks_obtained), 2), 0) AS avg_marks
+            FROM students s
+            LEFT JOIN results r ON s.student_id = r.student_id AND r.status = 'Approved'
+            WHERE s.class_id = ?
+            GROUP BY s.student_id
+            ORDER BY avg_marks DESC
+        ";
+    } else {
+        // TERM-SPECIFIC RANKING: Get all students' average marks for selected term only
+        $query = "
+            SELECT s.student_id, 
+                   IFNULL(ROUND(AVG(r.marks_obtained), 2), 0) AS avg_marks
+            FROM students s
+            LEFT JOIN results r ON s.student_id = r.student_id AND r.status = 'Approved'
+            JOIN exams e ON r.exam_id = e.exam_id
+            WHERE s.class_id = ? AND e.term = ?
+            GROUP BY s.student_id
+            ORDER BY avg_marks DESC
+        ";
+    }
+    
+    // STEP 2: Execute query and find current student's rank
+    $stmt = $conn->prepare($query);
+    if ($selected_term === 'all') {
+        $stmt->bind_param("i", $class_id);
+    } else {
+        $stmt->bind_param("is", $class_id, $selected_term);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    // STEP 3: Loop through results to find rank
+    $rank = 0;
+    $total = 0;
+    while ($row = $result->fetch_assoc()) {
+        $total++;
+        if ($row['student_id'] == $student_id) {
+            $rank = $total;  // Found! This is the student's position
+            break;
+        }
+    }
+    $stmt->close();
+    
+    // STEP 4: Format the display message
+    $term_label = ($selected_term === 'all') ? 'Overall' : $selected_term;
+    if ($rank > 0 && $total > 0) {
+        $display = "Rank #" . $rank . " out of " . $total . " (" . $term_label . ")";
+    } else {
+        $display = "No ranking data (" . $term_label . ")";
+    }
+    
+    return [
+        'rank' => $rank,
+        'total' => $total,
+        'display' => $display
+    ];
+}
+
 // ✅ Get selected term from query parameter
 $selected_term = $_GET['term'] ?? 'all';
 
@@ -122,45 +193,13 @@ $max_marks_list = $marks_data['max_marks_list'];
 $grade_info = getGrade($percentage_avg);
 $stmt_marks->close();
 
-// ✅ Fetch student's rank in their class using sorting algorithms
+// ✅ Calculate Student's Rank (Term-wise or Overall)
 $class_id = $student['class_id'] ?? null;
-$student_rank = 0;
-$total_class_students = 0;
-$algorithm_used = 'usort'; // Can be: usort, quicksort, mergesort, heapsort, countingsort
+$ranking_data = calculateStudentRank($conn, $_SESSION['student_id'], $class_id, $selected_term);
+$student_rank = $ranking_data['rank'];
+$total_class_students = $ranking_data['total'];
+$rank_display = $ranking_data['display'];
 
-if ($class_id) {
-    // Fetch all students in class with their average marks
-    $rank_sql = "
-        SELECT s.student_id, s.name, ROUND(AVG(r.marks_obtained), 2) AS avg_marks
-        FROM students s
-        LEFT JOIN results r ON s.student_id = r.student_id AND r.status = 'Approved'
-        WHERE s.class_id = ?
-        GROUP BY s.student_id";
-    
-    $stmt_rank = $conn->prepare($rank_sql);
-    $stmt_rank->bind_param("i", $class_id);
-    $stmt_rank->execute();
-    $rank_result = $stmt_rank->get_result();
-    
-    // Fetch all students data
-    $students_data = [];
-    while ($row = $rank_result->fetch_assoc()) {
-        $students_data[] = $row;
-    }
-    $stmt_rank->close();
-    
-    // Use ranking algorithm (can be changed: quicksort, mergesort, heapsort, countingsort)
-    if (!empty($students_data)) {
-        $ranking_result = StudentRankingAlgorithms::getRankWithMetrics(
-            $students_data, 
-            $_SESSION['student_id'], 
-            $algorithm_used
-        );
-        
-        $student_rank = $ranking_result['rank'];
-        $total_class_students = $ranking_result['total'];
-    }
-}
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -326,14 +365,6 @@ $conn->close();
             text-align: center;
             min-width: 50px;
         }
-        .rank-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 6px;
-            background: #3b82f6;
-            color: white;
-            font-weight: bold;
-        }
         
         /* Vibrant Notice Animations */
         @keyframes slideInRight {
@@ -483,7 +514,7 @@ $conn->close();
                 <?php if ($result_count > 0): ?>
                 <tr><th>Marks <?php echo $selected_term !== 'all' ? '(' . htmlspecialchars($selected_term) . ')' : '(Overall)'; ?></th><td><?php echo number_format($avg_marks, 2); ?> marks | <strong><?php echo number_format($percentage_avg, 2); ?>%</strong> - <span class="grade-badge" style="background-color: <?php echo $grade_info['color']; ?>;"><?php echo $grade_info['grade']; ?></span></td></tr>
                 <?php endif; ?>
-                <tr><th>Class Ranking</th><td><span class="rank-badge"><?php echo $student_rank > 0 ? "Rank #" . $student_rank . " out of " . $total_class_students : "No ranking data"; ?></span></td></tr>
+                <tr><th>Class Rank <?php echo $selected_term !== 'all' ? '(' . htmlspecialchars($selected_term) . ')' : '(Overall)'; ?></th><td><span class="rank-badge"><?php echo htmlspecialchars($rank_display); ?></span></td></tr>
             </table>
         </div>
 
