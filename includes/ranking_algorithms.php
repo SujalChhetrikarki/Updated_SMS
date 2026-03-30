@@ -10,7 +10,6 @@ class StudentRankingAlgorithms {
      * Time Complexity: O(n log n)
      * Space Complexity: O(n)
      * Use Case: General purpose, reliable, and simple
-     * 
      * @param array $students - Array of student data with marks_obtained and student_id
      * @param string $currentStudentId - Current student ID to find rank
      * @return array - ['rank' => rank, 'total' => total_students]
