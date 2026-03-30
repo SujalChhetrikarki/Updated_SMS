@@ -41,7 +41,6 @@ if ($student = $result->fetch_assoc()) {
         $_SESSION['student_name']  = $student['name'];
         $_SESSION['student_email'] = $student['email'];
         $_SESSION['class_id']      = $student['class_id'];
-        $_SESSION['success']       = "✓ Welcome " . $student['name'];
         
         // Clear error
         unset($_SESSION['error']);

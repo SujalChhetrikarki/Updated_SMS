@@ -50,8 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $_SESSION['admin_name']  = $row['name'];
             $_SESSION['admin_email'] = $row['email'];
 
-            // ✅ NEW: Success message
-            $_SESSION['success'] = "✓ Welcome " . $row['name'];
             unset($_SESSION['error']);
 
             header("Location: index.php");

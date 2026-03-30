@@ -242,10 +242,7 @@ footer{
         unset($_SESSION['error']);
       }
       // Display success message if exists
-      if (isset($_SESSION['success'])) {
-        echo '<div class="success-message">' . $_SESSION['success'] . '</div>';
-        unset($_SESSION['success']);
-      }
+
     ?>
 
     <form action="admin_login_process.php" method="post">

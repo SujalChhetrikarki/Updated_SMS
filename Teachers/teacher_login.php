@@ -47,8 +47,6 @@ if ($teacher = $result->fetch_assoc()) {
         $_SESSION['teacher_email'] = $teacher['email'];
         $_SESSION['specialization'] = $teacher['specialization'];
 
-        // ✅ NEW: Success message
-        $_SESSION['success'] = "✓ Welcome " . $teacher['name'];
         unset($_SESSION['error']);
 
         header("Location: teacher_dashboard.php");
