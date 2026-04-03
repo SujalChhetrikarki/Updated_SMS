@@ -5,6 +5,8 @@ if(!isset($_SESSION['student_id'])) {
     exit; 
 }
 include '../Database/db_connect.php';
+include '../includes/ranking_algorithms.php';
+include '../includes/grading.php';
 
 $student_id = $_SESSION['student_id'];
 
@@ -64,25 +66,22 @@ SELECT s.student_id,
 FROM students s
 LEFT JOIN results r ON s.student_id=r.student_id AND r.status='Approved'
 WHERE s.class_id=?
-GROUP BY s.student_id
-ORDER BY avg_marks DESC";
+GROUP BY s.student_id";
 $stmt_class = $conn->prepare($sql_class);
 $stmt_class->bind_param("s", $class_id);
 $stmt_class->execute();
 $class_results = $stmt_class->get_result();
 
-$rank = 0;
-$position = 0;
-$total_students = $class_results->num_rows;
-
-// ✅ Assign rank (simple ranking)
+// Collect all students data
+$students_data = [];
 while($row = $class_results->fetch_assoc()) {
-    $rank++;
-    if($row['student_id'] == $student_id) {
-        $position = $rank;
-        break;
-    }
+    $students_data[] = $row;
 }
+
+// ✅ Use Counting Sort algorithm for ranking (Linear O(n) complexity)
+$ranking_result = StudentRankingAlgorithms::getStudentRank($students_data, $student_id);
+$position = $ranking_result['rank'];
+$total_students = $ranking_result['total'];
 
 // ✅ Fetch distinct terms for this student
 $stmt_terms = $conn->prepare("
@@ -101,23 +100,13 @@ while($t = $terms_result->fetch_assoc()){
     $terms[] = $t['term'];
 }
 
-// ✅ Grading Function - Converts marks to letter grades
-function getGrade($marks) {
-    if ($marks >= 90) return ['grade' => 'A+', 'color' => '#10b981'];      // A+ (90-100)
-    if ($marks >= 85) return ['grade' => 'A', 'color' => '#059669'];       // A  (85-89)
-    if ($marks >= 80) return ['grade' => 'A-', 'color' => '#0d9488'];      // A- (80-84)
-    if ($marks >= 75) return ['grade' => 'B+', 'color' => '#2563eb'];      // B+ (75-79)
-    if ($marks >= 70) return ['grade' => 'B', 'color' => '#1e40af'];       // B  (70-74)
-    if ($marks >= 65) return ['grade' => 'B-', 'color' => '#1e3a8a'];      // B- (65-69)
-    if ($marks >= 60) return ['grade' => 'C+', 'color' => '#ea580c'];      // C+ (60-64)
-    if ($marks >= 55) return ['grade' => 'C', 'color' => '#c2410c'];       // C  (55-59)
-    if ($marks >= 50) return ['grade' => 'C-', 'color' => '#b45309'];      // C- (50-54)
-    if ($marks >= 40) return ['grade' => 'D', 'color' => '#ea8500'];       // D  (40-49)
-    return ['grade' => 'F', 'color' => '#dc2626'];                         // F  (0-39)
-}
-
 // ✅ Get overall grade
 $overall_grade = getGrade($overall_avg);
+
+// ✅ Close database connections
+$stmt->close();
+$stmt_res->close();
+$stmt_class->close();
 $stmt_terms->close();
 ?>
 <!DOCTYPE html>

@@ -6,6 +6,7 @@ if (!isset($_SESSION['student_id'])) {
 }
 
 include '../Database/db_connect.php';
+include '../includes/grading.php';
 
 // Get student ID
 $student_id = $_SESSION['student_id'];
@@ -33,26 +34,7 @@ if (!$student) {
     die("Student not found.");
 }
 
-// =======================
-// Grading Function
-// =======================
-function getGrade($marks) {
-    if ($marks >= 90) return ['grade' => 'A+', 'color' => '#10b981'];
-    if ($marks >= 85) return ['grade' => 'A', 'color' => '#059669'];
-    if ($marks >= 80) return ['grade' => 'A-', 'color' => '#0d9488'];
-    if ($marks >= 75) return ['grade' => 'B+', 'color' => '#2563eb'];
-    if ($marks >= 70) return ['grade' => 'B', 'color' => '#1e40af'];
-    if ($marks >= 65) return ['grade' => 'B-', 'color' => '#1e3a8a'];
-    if ($marks >= 60) return ['grade' => 'C+', 'color' => '#ea580c'];
-    if ($marks >= 55) return ['grade' => 'C', 'color' => '#c2410c'];
-    if ($marks >= 50) return ['grade' => 'C-', 'color' => '#b45309'];
-    if ($marks >= 40) return ['grade' => 'D', 'color' => '#ea8500'];
-    return ['grade' => 'F', 'color' => '#dc2626'];
-}
-
-// =======================
-// 2️⃣ Fetch Attendance Summary
-// =======================
+// ✅ Fetch Attendance Summary
 $stmt2 = $conn->prepare("
     SELECT status FROM attendance WHERE student_id = ?
 ");
