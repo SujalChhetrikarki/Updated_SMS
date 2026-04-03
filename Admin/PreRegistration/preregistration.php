@@ -87,7 +87,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 0;
             box-sizing: border-box;
         }
-        
+/* ===== FOOTER ===== */
+footer{
+  padding:16px;
+  text-align:center;
+  font-size:13px;
+  opacity:.75;
+}
+/* ===== HEADER ===== */
+header{
+  padding:18px 60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}       
         body {
             font-family: 'Inter', 'Segoe UI', sans-serif;
             background: radial-gradient(circle at top right,#60a5fa,transparent 40%),
@@ -281,10 +294,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 font-size: 24px;
             }
         }
+        
     </style>
 </head>
 <body>
+<!-- HEADER -->
+<header>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <img src="../../Images/logo.jpg" style="width:40px;border-radius:10px;">
+    <div>
+      <b>Student Management</b><br>
+      <small>Diversity Academy</small>
+    </div>
+  </div>
 
+  <nav>
+    <a href="../../index.php">Home</a>
+    <a href="../../Students/student.php">Student</a>
+    <a href="../../Teachers/teacher.php">Teacher</a>
+    <a href="../../Admin/admin.php">Admin</a>
+  </nav>
+</header>
 <div class="container">
     <div class="form-header">
         <h1>Student Pre-Registration</h1>
@@ -424,8 +454,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
     </div>
 </div>
-
 <?php $conn->close(); ?>
-
+<footer>
+© 2026 Diversity Academy • Student Management System
+</footer>
 </body>
 </html>

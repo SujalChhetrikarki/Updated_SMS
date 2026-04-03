@@ -383,7 +383,7 @@ tfoot td {
 
 <div class="report-card">
     <div class="school-header">
-        <h1>Dignity Academy</h1>
+        <h1>Diversity Academy</h1>
         <p>Excellence in Education | Kathmandu, Nepal</p>
     </div>
 
