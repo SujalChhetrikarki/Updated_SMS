@@ -328,8 +328,8 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 <p style="font-size: 13px; color: #6b7280; margin-top: 15px;">
     <strong>CSV Format:</strong> name, email, password, class_id, date_of_birth, gender<br>
     <strong>Example:</strong><br>
-    John Doe,john@example.com,Pass123!,1,2010-05-15,Male<br>
-    Jane Smith,jane@example.com,Pass456!,2,2009-03-20,Female
+Rachana KC,Rachanakc@gmail.com,Pass123!,1,2010-05-15,Female <br>
+Sujal Chhetri Karki,Sujalchhetri@gmail.com,Pass456!,2,2009-03-20,Male
 </p>
 
 <a href="SAMPLE_STUDENTS.csv" download style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #10b981; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; transition: 0.3s;">📥 Download Sample CSV</a>
