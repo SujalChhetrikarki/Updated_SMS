@@ -9,7 +9,6 @@ include '../../Database/db_connect.php';
 
 // Fetch admission fee (or set default)
 $admission_fee = 10000.00; // Default admission fee in NPR
-
 // Check if admin has set a specific fee
 $sql = "SELECT value FROM settings WHERE key='admission_fee' LIMIT 1";
 $result = $conn->query($sql);
