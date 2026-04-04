@@ -9,7 +9,7 @@ include '../Database/db_connect.php';
 
 // Fetch classes
 $classes = [];
-$sql = "SELECT class_id, class_name FROM classes ORDER BY class_name ASC";
+$sql = "SELECT class_id, class_name FROM classes ORDER BY class_id ASC";
 $result = $conn->query($sql);
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -331,6 +331,35 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 Rachana KC,Rachanakc@gmail.com,Pass123!,1,2010-05-15,Female <br>
 Sujal Chhetri Karki,Sujalchhetri@gmail.com,Pass456!,2,2009-03-20,Male
 </p>
+
+<!-- Available Classes Reference -->
+<div style="margin-top: 20px; padding: 15px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px;">
+    <h4 style="margin-top: 0; color: #16a34a; font-size: 14px;">📋 Available Classes (for Class ID):</h4>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr style="background: #dcfce7; border-bottom: 2px solid #86efac;">
+                    <th style="padding: 8px; text-align: left; color: #166534; font-weight: 600;">Class ID</th>
+                    <th style="padding: 8px; text-align: left; color: #166534; font-weight: 600;">Class Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if(!empty($classes)): ?>
+                    <?php foreach($classes as $index => $class): ?>
+                    <tr style="border-bottom: 1px solid #d1fae5; <?= $index % 2 == 0 ? 'background: #f0fdf4;' : 'background: #fff;' ?>">
+                        <td style="padding: 8px; color: #15803d; font-weight: 500;"><?= htmlspecialchars($class['class_id']) ?></td>
+                        <td style="padding: 8px; color: #166534;"><?= htmlspecialchars($class['class_name']) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="2" style="padding: 8px; text-align: center; color: #666;">No classes available. Please create classes first.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <a href="SAMPLE_STUDENTS.csv" download style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #10b981; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; transition: 0.3s;">📥 Download Sample CSV</a>
 
