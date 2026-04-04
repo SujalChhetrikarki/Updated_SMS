@@ -1,11 +1,3 @@
 name,email,password,class_id,date_of_birth,gender
-John Doe,john.doe@example.com,Secure123!,1,2010-05-15,Male
-Jane Smith,jane.smith@example.com,Secure456!,1,2009-08-22,Female
-Michael Johnson,michael.johnson@example.com,MyPass789!,2,2010-01-10,Male
-Sarah Williams,sarah.williams@example.com,ShearPass123!,2,2009-11-03,Female
-Robert Brown,robert.brown@example.com,BrownPass456!,1,2010-03-27,Male
-Emily Davis,emily.davis@example.com,EmilyPass789!,3,2010-07-14,Female
-James Miller,james.miller@example.com,MillerPass123!,2,2009-12-05,Male
-Olivia Wilson,olivia.wilson@example.com,OliviaPass456!,1,2010-02-18,Female
-David Moore,david.moore@example.com,MoorePass789!,3,2010-04-09,Male
-Sophia Taylor,sophia.taylor@example.com,TaylorPass123!,2,2010-06-20,Female
+Sujal Chhetri Karki,sujal.chhetri@example.com,Secure123!,1,2010-05-15,Male
+Rachana Khatri,rachana.khatri@example.com,Secure456!,1,2009-08-22,Female
