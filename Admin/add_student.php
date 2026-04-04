@@ -147,6 +147,64 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 .student-card p { margin:4px 0; font-size:13px; color:#555; }
 .empty { text-align:center; font-size:15px; color:#6b7280; padding: 40px; grid-column: 1/-1; }
 
+/* ===== Tabs ===== */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e5e7eb;
+}
+.tab-btn {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.3s;
+    font-size: 16px;
+}
+.tab-btn:hover { color: #3b82f6; }
+.tab-btn.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+
+/* ===== File Upload ===== */
+.file-upload-area {
+    border: 2px dashed #3b82f6;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    background: #f0f9ff;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.file-upload-area:hover {
+    background: #e0f2fe;
+    border-color: #2563eb;
+}
+.file-upload-area input[type="file"] {
+    display: none;
+}
+.upload-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+.upload-text {
+    color: #3b82f6;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+.upload-hint {
+    color: #6b7280;
+    font-size: 13px;
+}
+
 /* ===== Class Filter ===== */
 .filter-box { display:flex; gap:10px; justify-content:center; margin-bottom:20px; flex-wrap: wrap; }
 .filter-box select { width:250px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
@@ -197,7 +255,7 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 
 <!-- Add Student Form -->
 <div class="container">
-<h2>Register New Student</h2>
+<h2>Student Management</h2>
 
 <?php if(isset($_SESSION['error'])): ?>
 <p class="msg error"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
@@ -206,6 +264,25 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 <p class="msg success"><?= $_SESSION['success']; unset($_SESSION['success']); ?></p>
 <?php endif; ?>
 
+<?php if(isset($_SESSION['bulk_errors']) && !empty($_SESSION['bulk_errors'])): ?>
+<div style="background: #fee; padding: 15px; border-radius: 6px; margin-bottom: 15px; max-height: 300px; overflow-y: auto;">
+    <h4 style="margin-top: 0; color: #ef4444;">Import Errors:</h4>
+    <ul style="margin: 0; padding-left: 20px; color: #ef4444; font-size: 13px;">
+    <?php foreach($_SESSION['bulk_errors'] as $error): ?>
+        <li><?= htmlspecialchars($error) ?></li>
+    <?php endforeach; ?>
+    </ul>
+</div>
+<?php unset($_SESSION['bulk_errors']); endif; ?>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('single')">Single Student</button>
+    <button class="tab-btn" onclick="switchTab('bulk')">Bulk Upload</button>
+</div>
+
+<!-- Single Student Tab -->
+<div id="single" class="tab-content active">
 <form action="add_student_process.php" method="POST">
 <input type="text" name="name" placeholder="Full Name" required>
 <input type="email" name="email" placeholder="Email" required>
@@ -232,6 +309,34 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 
 <button type="submit">Add Student</button>
 </form>
+</div>
+
+<!-- Bulk Upload Tab -->
+<div id="bulk" class="tab-content">
+<form action="bulk_add_students.php" method="POST" enctype="multipart/form-data">
+<div class="file-upload-area" onclick="document.getElementById('csvFile').click();">
+    <div class="upload-icon">📁</div>
+    <div class="upload-text">Click to upload CSV file</div>
+    <div class="upload-hint">or drag and drop (.csv, max 5MB)</div>
+    <input type="file" id="csvFile" name="csv_file" accept=".csv" required>
+</div>
+
+<div id="fileInfo" style="margin-top: 15px; padding: 10px; background: #f3f4f6; border-radius: 6px; display: none;">
+    <p><strong>Selected file:</strong> <span id="fileName"></span></p>
+</div>
+
+<p style="font-size: 13px; color: #6b7280; margin-top: 15px;">
+    <strong>CSV Format:</strong> name, email, password, class_id, date_of_birth, gender<br>
+    <strong>Example:</strong><br>
+    John Doe,john@example.com,Pass123!,1,2010-05-15,Male<br>
+    Jane Smith,jane@example.com,Pass456!,2,2009-03-20,Female
+</p>
+
+<a href="SAMPLE_STUDENTS.csv" download style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #10b981; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; transition: 0.3s;">📥 Download Sample CSV</a>
+
+<button type="submit" style="margin-top: 20px;">Import Students</button>
+</form>
+</div>
 
 <a class="back" href="students.php">⬅ Back to Manage Students</a>
 </div>
@@ -266,6 +371,54 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 </div>
 
 <script>
+// Tab switching
+function switchTab(tab) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    // Show selected tab
+    document.getElementById(tab).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// File upload handling
+const csvFile = document.getElementById('csvFile');
+const fileInfo = document.getElementById('fileInfo');
+
+csvFile.addEventListener('change', function() {
+    if (this.files.length > 0) {
+        document.getElementById('fileName').textContent = this.files[0].name;
+        fileInfo.style.display = 'block';
+    }
+});
+
+// Drag and drop
+const uploadArea = document.querySelector('.file-upload-area');
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.background = '#e0f2fe';
+    uploadArea.style.borderColor = '#2563eb';
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.background = '#f0f9ff';
+    uploadArea.style.borderColor = '#3b82f6';
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].name.endsWith('.csv')) {
+        csvFile.files = files;
+        const event = new Event('change', { bubbles: true });
+        csvFile.dispatchEvent(event);
+    } else {
+        alert('Please drop a CSV file');
+    }
+});
+
 function showStudents() {
     const selected = document.getElementById("classFilter").value;
     const container = document.getElementById("studentContainer");
