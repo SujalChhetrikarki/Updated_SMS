@@ -66,7 +66,6 @@ class StudentRankingAlgorithms {
         }
 
         $executionTime = round((microtime(true) - $startTime) * 1000, 4);
-
         return [
             'rank' => $rank,
             'total' => count($students),
