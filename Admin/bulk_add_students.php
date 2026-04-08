@@ -78,12 +78,26 @@ if (($handle = fopen($file, "r")) !== false) {
             continue;
         }
         
-        // Validate date of birth
-        $dob_timestamp = strtotime($date_of_birth);
-        if ($dob_timestamp === false || $dob_timestamp > time()) {
-            $errors[] = "Row {$row_num}: Invalid date of birth ({$date_of_birth}). Must be a valid past date.";
+        // Validate date of birth - accept multiple formats
+        $date_formats = ['Y-m-d', 'd-m-Y', 'm-d-Y', 'd/m/Y', 'm/d/Y', 'Y/m/d', 'n/d/Y'];
+        $date_obj = null;
+        $validated_dob = null;
+        
+        foreach ($date_formats as $format) {
+            $date_obj = DateTime::createFromFormat($format, $date_of_birth);
+            if ($date_obj !== false && $date_obj->format($format) === $date_of_birth) {
+                $validated_dob = $date_obj->format('Y-m-d');
+                break;
+            }
+        }
+        
+        if ($validated_dob === null || strtotime($validated_dob) > time()) {
+            $errors[] = "Row {$row_num}: Invalid date of birth ({$date_of_birth}). Accepted formats: YYYY-MM-DD, DD-MM-YYYY, MM-DD-YYYY, M/D/YYYY (e.g., 5/15/2010).";
             continue;
         }
+        
+        // Use the validated and formatted date
+        $date_of_birth = $validated_dob;
         
         // Validate class_id exists
         $check_class = $conn->prepare("SELECT class_id FROM classes WHERE class_id = ?");
