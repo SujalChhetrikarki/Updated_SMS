@@ -21,7 +21,7 @@ $stmt->execute();
 $student = $stmt->get_result()->fetch_assoc();
 
 // Fetch classes for dropdown
-$classes = $conn->query("SELECT * FROM classes");
+$classes = $conn->query("SELECT * FROM classes ORDER BY class_id ASC");
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -10,7 +10,7 @@ include '../Database/db_connect.php';
 /* =========================
    FETCH CLASSES
 ========================= */
-$classes = $conn->query("SELECT class_id, class_name FROM classes ORDER BY class_name");
+$classes = $conn->query("SELECT class_id, class_name FROM classes ORDER BY class_id ASC");
 
 /* =========================
    FETCH SUBJECTS BY CLASS

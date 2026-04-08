@@ -52,7 +52,7 @@ $map->close();
 $teaching_classes = array_keys($assigned_subjects_for_class);
 
 // Fetch all classes & subjects
-$all_classes = $conn->query("SELECT class_id, class_name FROM classes");
+$all_classes = $conn->query("SELECT class_id, class_name FROM classes ORDER BY class_id ASC");
 $all_subjects = [];
 $subjectQuery = $conn->query("SELECT subject_id, subject_name FROM subjects");
 while ($s = $subjectQuery->fetch_assoc()) {
@@ -206,7 +206,7 @@ form button:hover {
             <select name="class_teacher_class" id="class_teacher_class">
                 <option value="">-- Select Class --</option>
                 <?php
-                $classQuery = $conn->query("SELECT class_id, class_name FROM classes");
+                $classQuery = $conn->query("SELECT class_id, class_name FROM classes ORDER BY class_id ASC");
                 while ($row = $classQuery->fetch_assoc()) {
                     $cid = $row['class_id'];
                     $sel = ($class_teacher_class && $class_teacher_class == $cid) ? 'selected' : '';
@@ -219,7 +219,7 @@ form button:hover {
         <label>Assign Subjects to Classes:</label>
         <div class="class-subject-container">
             <?php
-            $classes = $conn->query("SELECT class_id, class_name FROM classes");
+            $classes = $conn->query("SELECT class_id, class_name FROM classes ORDER BY class_id ASC");
             while ($class = $classes->fetch_assoc()) {
                 $cid = $class['class_id'];
                 $isTeaching = in_array($cid, $teaching_classes, true);

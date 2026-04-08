@@ -30,7 +30,7 @@ $subject_ids = [ $_POST['subject_id'] ];
 }
 
 // Fetch classes and subjects
-$classes = $conn->query("SELECT class_id, class_name FROM classes ORDER BY class_name");
+$classes = $conn->query("SELECT class_id, class_name FROM classes ORDER BY class_id ASC");
 $subjects = $conn->query("SELECT subject_id, subject_name FROM subjects ORDER BY subject_name");
 
 // Fetch all exams
