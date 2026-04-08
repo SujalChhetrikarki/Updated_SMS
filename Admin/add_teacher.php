@@ -11,7 +11,7 @@ include '../Database/db_connect.php';
 /* =========================
    FETCH CLASSES & SUBJECTS
 ========================= */
-$classes = $conn->query("SELECT class_id, class_name FROM classes ORDER BY class_name");
+$classes = $conn->query("SELECT class_id, class_name FROM classes ORDER BY class_id ASC");
 
 $subjectsAll = [];
 $result = $conn->query("SELECT subject_id, subject_name FROM subjects ORDER BY subject_name");
