@@ -183,7 +183,7 @@ tr:hover { background: #f1f5f9; }
         <div class="table-wrapper">
         <table>
             <tr>
-                <th>Select</th>
+                <th><input type="checkbox" id="checkAll" onclick="toggleCheckAll(this)"> Select</th>
                 <th>Student</th>
                 <th>Class</th>
                 <th>Subject</th>
@@ -198,7 +198,7 @@ tr:hover { background: #f1f5f9; }
             <?php else: ?>
             <?php while($r=$results->fetch_assoc()): ?>
             <tr>
-                <td><input type="checkbox" name="result_id[]" value="<?= $r['result_id'] ?>"></td>
+                <td><input type="checkbox" name="result_id[]" class="resultCheckbox" value="<?= $r['result_id'] ?>"></td>
                 <td><?= htmlspecialchars($r['student_name']) ?></td>
                 <td><?= htmlspecialchars($r['class_name']) ?></td>
                 <td><?= htmlspecialchars($r['subject_name']) ?></td>
@@ -234,6 +234,25 @@ tr:hover { background: #f1f5f9; }
 </button>
 
 </div>
+
+<script>
+// Check/Uncheck All functionality for results
+function toggleCheckAll(checkAllBox) {
+    const checkboxes = document.querySelectorAll('.resultCheckbox');
+    checkboxes.forEach(box => {
+        box.checked = checkAllBox.checked;
+    });
+}
+
+// Update "Check All" checkbox when individual checkboxes change
+document.querySelectorAll('.resultCheckbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const checkAllBox = document.getElementById('checkAll');
+        const allChecked = document.querySelectorAll('.resultCheckbox:checked').length === document.querySelectorAll('.resultCheckbox').length;
+        checkAllBox.checked = allChecked;
+    });
+});
+</script>
 
 </body>
 </html>
