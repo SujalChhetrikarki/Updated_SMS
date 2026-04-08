@@ -29,23 +29,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $class_id = intval($_POST['class_id']);
     $password = trim($_POST['password'] ?? '');
+    $date_of_birth = trim($_POST['date_of_birth'] ?? '');
+    $gender = trim($_POST['gender'] ?? '');
 
-    if ($password !== '') {
-        // Hash the new password
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("UPDATE students SET name=?, email=?, class_id=?, password=? WHERE student_id=?");
-        $stmt->bind_param("ssisi", $name, $email, $class_id, $hashed_password, $student_id);
-    } else {
-        // No password change
-        $stmt = $conn->prepare("UPDATE students SET name=?, email=?, class_id=? WHERE student_id=?");
-        $stmt->bind_param("ssii", $name, $email, $class_id, $student_id);
+    // Validate required fields
+    if (empty($name) || empty($email) || !$class_id) {
+        $error = "Name, email, and class are required.";
+    } else if (!empty($date_of_birth)) {
+        // Validate and convert date format if provided
+        $date_formats = ['Y-m-d', 'd-m-Y', 'm-d-Y', 'd/m/Y', 'm/d/Y', 'Y/m/d', 'n/d/Y', 'j/n/Y', 'n/j/Y', 'd-m-Y', 'j-n-Y', 'n-j-Y'];
+        $date_obj = null;
+        $validated_dob = null;
+        
+        foreach ($date_formats as $format) {
+            $date_obj = DateTime::createFromFormat($format, $date_of_birth);
+            if ($date_obj !== false) {
+                $formatted = $date_obj->format($format);
+                if ($formatted === $date_of_birth) {
+                    $validated_dob = $date_obj->format('Y-m-d');
+                    break;
+                }
+            }
+        }
+        
+        if ($validated_dob === null || strtotime($validated_dob) > time()) {
+            $error = "Invalid date of birth. Use format: YYYY-MM-DD, DD-MM-YYYY, or M/D/YYYY (e.g., 1/3/2010 or 01/03/2010).";
+        } else {
+            $date_of_birth = $validated_dob;
+        }
     }
 
-    $stmt->execute();
-    $stmt->close();
+    if (!isset($error)) {
+        if ($password !== '') {
+            // Hash the new password
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("UPDATE students SET name=?, email=?, class_id=?, password=?, date_of_birth=?, gender=? WHERE student_id=?");
+            $stmt->bind_param("ssisisi", $name, $email, $class_id, $hashed_password, $date_of_birth, $gender, $student_id);
+        } else {
+            // No password change
+            $stmt = $conn->prepare("UPDATE students SET name=?, email=?, class_id=?, date_of_birth=?, gender=? WHERE student_id=?");
+            $stmt->bind_param("ssissi", $name, $email, $class_id, $date_of_birth, $gender, $student_id);
+        }
 
-    header("Location: Managestudent.php?msg=updated");
-    exit;
+        $stmt->execute();
+        $stmt->close();
+
+        header("Location: Managestudent.php?msg=updated");
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -123,6 +154,11 @@ a:hover { color: #007bff; }
 <body>
 <div class="container">
     <h1>✏ Edit Student</h1>
+    <?php if(isset($error)): ?>
+        <p style="color: #ef4444; margin: 10px 0; padding: 10px; background: #fee; border-radius: 6px;">
+            <?= htmlspecialchars($error); ?>
+        </p>
+    <?php endif; ?>
     <form method="post">
         <label>Name:</label>
         <input type="text" name="name" value="<?= htmlspecialchars($student['name']); ?>" required>
@@ -137,6 +173,17 @@ a:hover { color: #007bff; }
                     <?= htmlspecialchars($c['class_name']); ?>
                 </option>
             <?php endwhile; ?>
+        </select>
+
+        <label>Date of Birth (Optional - formats: YYYY-MM-DD, DD-MM-YYYY, or M/D/YYYY):</label>
+        <input type="text" name="date_of_birth" value="<?= htmlspecialchars($student['date_of_birth']); ?>" placeholder="e.g., 1/3/2010, 2010-05-15, or 01/03/2010">
+
+        <label>Gender:</label>
+        <select name="gender">
+            <option value="">-- Select Gender --</option>
+            <option value="Male" <?= ($student['gender']=='Male')?'selected':''; ?>>Male</option>
+            <option value="Female" <?= ($student['gender']=='Female')?'selected':''; ?>>Female</option>
+            <option value="Other" <?= ($student['gender']=='Other')?'selected':''; ?>>Other</option>
         </select>
 
         <label>Password (leave blank to keep current):</label>

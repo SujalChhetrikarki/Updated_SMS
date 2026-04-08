@@ -327,12 +327,12 @@ a.back { display:inline-block; margin-top:10px; text-decoration:none; color:#3b8
 
 <p style="font-size: 13px; color: #6b7280; margin-top: 15px;">
     <strong>CSV Format:</strong> name, email, password, class_id, date_of_birth, gender<br>
-    <strong>Supported Date Formats:</strong> YYYY-MM-DD | DD-MM-YYYY | MM-DD-YYYY | M/D/YYYY<br>
-    <strong>Examples:</strong><br>
+    <strong>Supported Date Formats:</strong> YYYY-MM-DD | DD-MM-YYYY | MM-DD-YYYY | M/D/YYYY | MM/DD/YYYY<br>
+    <strong>Examples (all work):</strong><br>
     • Rachana KC,Rachanakc@gmail.com,Pass123!,1,2010-05-15,Female (YYYY-MM-DD)<br>
-    • Sujal Chhetri Karki,Sujalchhetri@gmail.com,Pass456!,2,2009-03-20,Male (YYYY-MM-DD)<br>
-    • Milan Rai,milanrai@gmail.com,Pass789!,1,5/15/2010,Male (M/D/YYYY)<br>
-    • Nisha Thapa,nisha@gmail.com,Pass000!,2,15-03-2010,Female (DD-MM-YYYY)
+    • Sujal Chhetri Karki,Sujalchhetri@gmail.com,Pass456!,2,2009-03-20,Male (with leading zeros)<br>
+    • Milan Rai,milanrai@gmail.com,Pass789!,1,1/3/2010,Male (M/D/YYYY - no leading zeros)<br>
+    • Nisha Thapa,nisha@gmail.com,Pass000!,2,01/03/2010,Female (MM/DD/YYYY - with leading zeros)
 </p>
 
 <!-- Available Classes Reference -->

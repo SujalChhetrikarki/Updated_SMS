@@ -78,21 +78,25 @@ if (($handle = fopen($file, "r")) !== false) {
             continue;
         }
         
-        // Validate date of birth - accept multiple formats
-        $date_formats = ['Y-m-d', 'd-m-Y', 'm-d-Y', 'd/m/Y', 'm/d/Y', 'Y/m/d', 'n/d/Y'];
+        // Validate date of birth - accept multiple formats with/without leading zeros
+        $date_formats = ['Y-m-d', 'd-m-Y', 'm-d-Y', 'd/m/Y', 'm/d/Y', 'Y/m/d', 'n/d/Y', 'j/n/Y', 'n/j/Y', 'd-m-Y', 'j-n-Y', 'n-j-Y'];
         $date_obj = null;
         $validated_dob = null;
         
         foreach ($date_formats as $format) {
             $date_obj = DateTime::createFromFormat($format, $date_of_birth);
-            if ($date_obj !== false && $date_obj->format($format) === $date_of_birth) {
-                $validated_dob = $date_obj->format('Y-m-d');
-                break;
+            if ($date_obj !== false) {
+                // Check if formatted date matches original (to avoid false positives)
+                $formatted = $date_obj->format($format);
+                if ($formatted === $date_of_birth) {
+                    $validated_dob = $date_obj->format('Y-m-d');
+                    break;
+                }
             }
         }
         
         if ($validated_dob === null || strtotime($validated_dob) > time()) {
-            $errors[] = "Row {$row_num}: Invalid date of birth ({$date_of_birth}). Accepted formats: YYYY-MM-DD, DD-MM-YYYY, MM-DD-YYYY, M/D/YYYY (e.g., 5/15/2010).";
+            $errors[] = "Row {$row_num}: Invalid date of birth ({$date_of_birth}). Accepted formats: YYYY-MM-DD, DD-MM-YYYY, MM-DD-YYYY, or M/D/YYYY (with or without leading zeros, e.g., 1/3/2010 or 01/03/2010).";
             continue;
         }
         
