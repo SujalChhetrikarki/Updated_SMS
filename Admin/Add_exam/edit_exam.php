@@ -9,6 +9,12 @@ if (!isset($_SESSION['admin_id'])) {
 
 $exam_id = $_GET['exam_id'] ?? 0;
 
+$min_date = new DateTime('tomorrow');
+$max_date = new DateTime('today');
+$max_date->modify('+2 months');
+$min_date_str = $min_date->format('Y-m-d');
+$max_date_str = $max_date->format('Y-m-d');
+
 /* Fetch exam */
 $stmt = $conn->prepare("SELECT * FROM exams WHERE exam_id = ?");
 $stmt->bind_param("i", $exam_id);
@@ -21,6 +27,11 @@ if (!$exam) die("Exam not found.");
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $exam_date = $_POST['exam_date'];
     $max_marks = $_POST['max_marks'];
+
+    if (empty($exam_date) || $exam_date < $min_date_str || $exam_date > $max_date_str) {
+        header("Location: edit_exam.php?exam_id=" . urlencode($exam_id) . "&msg=" . urlencode("❌ Exam date must be between {$min_date_str} and {$max_date_str}."));
+        exit;
+    }
 
     $stmt = $conn->prepare("UPDATE exams SET exam_date = ?, max_marks = ? WHERE exam_id = ?");
     $stmt->bind_param("sii", $exam_date, $max_marks, $exam_id);
@@ -185,7 +196,8 @@ input {
 
         <form method="POST">
             <label>Exam Date</label>
-            <input type="date" name="exam_date" value="<?= htmlspecialchars($exam['exam_date']) ?>" min="<?= date('Y-m-d') ?>" required>
+            <input type="date" name="exam_date" value="<?= htmlspecialchars($exam['exam_date']) ?>" min="<?= $min_date_str ?>" max="<?= $max_date_str ?>" required>
+            <small style="display:block; margin-bottom:10px; color:#555;">Allowed exam dates: <?= $min_date_str ?> to <?= $max_date_str ?></small>
 
             <label>Maximum Marks</label>
             <input type="number" name="max_marks" value="<?= htmlspecialchars($exam['max_marks']) ?>" min="1" required>

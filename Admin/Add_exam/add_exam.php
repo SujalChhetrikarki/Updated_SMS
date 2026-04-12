@@ -7,12 +7,23 @@ if (!isset($_SESSION['admin_id'])) {
     exit;
 }
 // Handle Add Exam Form
+$min_date = new DateTime('tomorrow');
+$max_date = new DateTime('today');
+$max_date->modify('+2 months');
+$min_date_str = $min_date->format('Y-m-d');
+$max_date_str = $max_date->format('Y-m-d');
+
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_exam'])) {
     $class_ids = [ $_POST['class_id'] ];
-$subject_ids = [ $_POST['subject_id'] ];
+    $subject_ids = [ $_POST['subject_id'] ];
     $exam_date = $_POST['exam_date'];
     $max_marks = $_POST['max_marks'];
     $term = $_POST['term'];
+
+    if (empty($exam_date) || $exam_date < $min_date_str || $exam_date > $max_date_str) {
+        header("Location: add_exam.php?msg=" . urlencode("❌ Exam date must be between {$min_date_str} and {$max_date_str}."));
+        exit;
+    }
 
     $inserted = 0;
     foreach ($class_ids as $class_id) {
@@ -179,7 +190,8 @@ th { background:#00bfff; }
 
 
         <label>Exam Date</label>
-        <input type="date" name="exam_date" min="<?= date('Y-m-d') ?>" required>
+        <input type="date" name="exam_date" min="<?= $min_date_str ?>" max="<?= $max_date_str ?>" required>
+        <small style="display:block; margin-bottom:10px; color:#555;">Allowed exam dates: <?= $min_date_str ?> to <?= $max_date_str ?></small>
 
         <label>Maximum Marks</label>
         <input type="number" name="max_marks" min="1" required>
