@@ -7,8 +7,12 @@ if (!isset($_SESSION['admin_id'])) {
 
 include '../../Database/db_connect.php';
 
-// Fetch all teachers
-$sql = "SELECT * FROM teachers ORDER BY name ASC";
+// Fetch all teachers and determine class teacher assignment from mapping
+$sql = "SELECT t.*, IF(ct.teacher_id IS NULL, 0, 1) AS is_class_teacher
+        FROM teachers t
+        LEFT JOIN class_teachers ct ON t.teacher_id = ct.teacher_id
+        GROUP BY t.teacher_id
+        ORDER BY t.name ASC";
 $result = $conn->query($sql);
 if (!$result) die("Error fetching teachers: " . $conn->error);
 ?>
@@ -194,6 +198,20 @@ tr:hover { background: #f1f5f9; }
                     if (!in_array($row['class_name'], $classes_arr)) $classes_arr[] = $row['class_name'];
                     if (!in_array($row['subject_name'], $subjects_arr)) $subjects_arr[] = $row['subject_name'];
                 }
+                $stmt_cs->close();
+
+                // Ensure class teacher assignment is also shown even when no subjects are assigned
+                $stmt_ct = $conn->prepare("SELECT c.class_name FROM class_teachers ct JOIN classes c ON ct.class_id = c.class_id WHERE ct.teacher_id = ?");
+                $stmt_ct->bind_param("s", $tid);
+                $stmt_ct->execute();
+                $res_ct = $stmt_ct->get_result();
+                while ($row = $res_ct->fetch_assoc()) {
+                    if (!in_array($row['class_name'], $classes_arr)) {
+                        $classes_arr[] = $row['class_name'];
+                    }
+                }
+                $stmt_ct->close();
+
                 $classes_str = !empty($classes_arr) ? implode(", ", $classes_arr) : "-";
                 $subjects_str = !empty($subjects_arr) ? implode(", ", $subjects_arr) : "-";
                 ?>

@@ -47,6 +47,8 @@ if ($name !== $old_data['name']) { $changes[]="name=?"; $params[]=$name; $types.
 if ($email !== $old_data['email']) { $changes[]="email=?"; $params[]=$email; $types.="s"; }
 if (!empty($password)) { $hashed = password_hash($password,PASSWORD_DEFAULT); $changes[]="password=?"; $params[]=$hashed; $types.="s"; }
 if ($specialization !== $old_data['specialization']) { $changes[]="specialization=?"; $params[]=$specialization; $types.="s"; }
+$is_class_teacher_int = $is_class_teacher ? 1 : 0;
+if ($is_class_teacher_int !== (int)$old_data['is_class_teacher']) { $changes[]="is_class_teacher=?"; $params[]=$is_class_teacher_int; $types.="i"; }
 
 if(!empty($changes)){
     $sql="UPDATE teachers SET ".implode(",",$changes)." WHERE teacher_id=?";

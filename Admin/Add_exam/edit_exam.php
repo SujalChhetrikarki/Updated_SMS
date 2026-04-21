@@ -14,6 +14,7 @@ $max_date = new DateTime('today');
 $max_date->modify('+2 months');
 $min_date_str = $min_date->format('Y-m-d');
 $max_date_str = $max_date->format('Y-m-d');
+$max_allowed_marks = 100;
 
 /* Fetch exam */
 $stmt = $conn->prepare("SELECT * FROM exams WHERE exam_id = ?");
@@ -30,6 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if (empty($exam_date) || $exam_date < $min_date_str || $exam_date > $max_date_str) {
         header("Location: edit_exam.php?exam_id=" . urlencode($exam_id) . "&msg=" . urlencode("❌ Exam date must be between {$min_date_str} and {$max_date_str}."));
+        exit;
+    }
+
+    if (filter_var($max_marks, FILTER_VALIDATE_INT, ["options" => ["min_range" => 1, "max_range" => $max_allowed_marks]]) === false) {
+        header("Location: edit_exam.php?exam_id=" . urlencode($exam_id) . "&msg=" . urlencode("❌ Maximum marks must be a whole number between 1 and {$max_allowed_marks}."));
         exit;
     }
 
@@ -180,7 +186,7 @@ input {
     <a href="../subjects.php">📖 Manage Subjects</a>
     <a href="../add_student.php">➕ Add Student</a>
     <a href="../add_teacher.php">➕ Add Teacher</a>
-    <a href="admin_add_exam.php">➕ Add Exam</a>
+    <a href="add_exam.php">➕ Add Exam</a>
     <a href="../admin_approve_results.php">✅ Approve Results</a>
     <a href="../logout.php" class="logout">🚪 Logout</a>
 </div>
@@ -200,12 +206,13 @@ input {
             <small style="display:block; margin-bottom:10px; color:#555;">Allowed exam dates: <?= $min_date_str ?> to <?= $max_date_str ?></small>
 
             <label>Maximum Marks</label>
-            <input type="number" name="max_marks" value="<?= htmlspecialchars($exam['max_marks']) ?>" min="1" required>
+            <input type="number" name="max_marks" value="<?= htmlspecialchars($exam['max_marks']) ?>" min="1" max="<?= $max_allowed_marks ?>" required>
+            <small style="display:block; margin-bottom:10px; color:#555;">Allowed max marks: 1 to <?= $max_allowed_marks ?>.</small>
 
             <button type="submit" class="btn">Update Exam</button>
         </form>
 
-        <a class="back-link" href="admin_add_exam.php">⬅ Back to Exams</a>
+        <a class="back-link" href="add_exam.php">⬅ Back to Exams</a>
     </div>
 </div>
 

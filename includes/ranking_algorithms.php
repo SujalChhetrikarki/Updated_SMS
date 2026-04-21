@@ -1,12 +1,6 @@
 <?php
-/**
- * Student Ranking Algorithm - Counting Sort
- * Optimal for ranking students by marks (0-100 range)
- * Time Complexity: O(n) - Linear time
- * Space Complexity: O(n) - Linear space
- */
+
 class StudentRankingAlgorithms {
-    
     /**
      * Counting Sort - LINEAR TIME RANKING ALGORITHM
      * Optimized for marks in range 0-100
@@ -18,7 +12,6 @@ class StudentRankingAlgorithms {
         if (empty($students)) {
             return $students;
         }
-
         $maxMarks = 100; // Marks range: 0-100
         $count = array_fill(0, $maxMarks + 1, []);
 

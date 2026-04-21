@@ -42,6 +42,8 @@ $stmt->close();
 
 /* 3️⃣ Handle form submission */
 $success = "";
+$error = "";
+$allowed_max_marks = min($exam['max_marks'], 100);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -49,6 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $marks = trim($marks);
         if ($marks === '') continue;
+
+        if (!is_numeric($marks) || $marks < 0 || $marks > $allowed_max_marks) {
+            $error = "❌ Marks must be a number between 0 and {$allowed_max_marks}.";
+            continue;
+        }
+
+        $marks = floatval($marks);
 
         /* INSERT / UPDATE marks — FIXED BINDING */
         $stmt = $conn->prepare("
@@ -154,6 +163,7 @@ Max Marks: <?= htmlspecialchars($exam['max_marks']) ?>
 </p>
 
 <?php if (!empty($success)) echo "<p class='success'>$success</p>"; ?>
+<?php if (!empty($error)) echo "<p class='success' style='color:red;'>$error</p>"; ?>
 
 <form method="post">
 <table>
@@ -171,7 +181,7 @@ Max Marks: <?= htmlspecialchars($exam['max_marks']) ?>
 <input type="number"
        step="0.01"
        min="0"
-       max="<?= $exam['max_marks'] ?>"
+       max="<?= $allowed_max_marks ?>"
        name="marks[<?= htmlspecialchars($student['student_id']) ?>]"
        value="<?= $existing_marks[$student['student_id']] ?? '' ?>">
 </td>
