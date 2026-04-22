@@ -14,7 +14,6 @@ class StudentRankingAlgorithms {
         }
         $maxMarks = 100; // Marks range: 0-100
         $count = array_fill(0, $maxMarks + 1, []);
-
         // Place students in count array based on marks
         foreach ($students as $student) {
             $marks = intval($student['avg_marks']);
