@@ -26,7 +26,6 @@ class StudentRankingAlgorithms {
                 $result[] = $student;
             }
         }
-
         return $result;
     }
 
