@@ -28,7 +28,6 @@ class StudentRankingAlgorithms {
         }
         return $result;
     }
-
     /**
      * Get student rank in class using Counting Sort algorithm
      * 
