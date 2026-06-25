@@ -39,7 +39,6 @@ class StudentRankingAlgorithms {
         if (empty($students)) {
             return ['rank' => 0, 'total' => 0, 'sorted_students' => []];
         }
-
         $startTime = microtime(true);
         
         // Sort students using Counting Sort
